@@ -7,7 +7,5 @@ module FloatOTF :
  sig
   val compare : float_std -> float_std -> comparison
 
-  val inf : float_std
-
   val neg_inf : float_std
  end

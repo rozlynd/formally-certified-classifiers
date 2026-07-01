@@ -1,3 +1,4 @@
+open Datatypes
 open FloatUtils
 open PrimFloat
 open Specif
@@ -26,7 +27,7 @@ type float_test =
 (** val float_feature : feature **)
 
 let float_feature t0 pat =
-  ltb (Obj.magic pat) (Obj.magic t0)
+  negb (leb (Obj.magic t0) (Obj.magic pat))
 
 type string_enum_test =
   StringSet.elt -> bool

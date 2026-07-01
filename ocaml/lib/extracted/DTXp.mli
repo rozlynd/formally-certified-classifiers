@@ -4,7 +4,6 @@ open Equalities
 open Explainers
 open Features
 open FloatUtils
-open PrimFloat
 open Utils
 open Xp
 
@@ -40,7 +39,8 @@ type boolConstraint =
 type floatConstraint =
 | FEmpty
 | FSingleton of float_std
-| FRange of float_std * float_std
+| FBounded of float_std * float_std
+| FUnbounded of float_std
 
 type senumConstraint =
   StringSet.t
