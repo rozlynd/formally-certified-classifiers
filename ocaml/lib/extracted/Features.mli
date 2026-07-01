@@ -1,3 +1,4 @@
+open Datatypes
 open FloatUtils
 open PrimFloat
 open Specif

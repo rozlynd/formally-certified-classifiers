@@ -25,7 +25,8 @@ Section FeatureSpaceConstraint.
     Variant floatConstraint : Type :=
     | FEmpty
     | FSingleton (a : float_std)
-    | FRange (a b : float_std) (p : FloatOTF.compare a b = Lt). (* [ a; b [ is b is finite, else [ a; +inf ] *)
+    | FBounded (a b : float_std) (p : FloatOTF.compare a b = Lt) (* [ a; b [ where a < b *)
+    | FUnbounded (a : float_std). (* [ a; +inf ] *)
 
     Variant senumConstraint (s : StringSet.t) : Type :=
     | SEnum (p : StringSet.t) (q : StringSet.Subset p s).
@@ -65,7 +66,8 @@ Section FeatureSpaceConstraint.
         match c with
         | FEmpty => False
         | FSingleton a =>  a = x (* Complication: FloatOTF.eq +0 -0 = true, so we use Logic.eq instead *)
-        | FRange a b _ => FloatOTF.le a x /\ (FloatOTF.eq b FloatOTF.inf \/ FloatOTF.lt x b)
+        | FBounded a b _ => FloatOTF.le a x /\ FloatOTF.lt x b
+        | FUnbounded a => FloatOTF.le a x
         end.
 
     Definition senumConstraintSat {s : StringSet.t} (c : senumConstraint s) (x : string_enum s) : Prop :=
@@ -83,20 +85,13 @@ Section FeatureSpaceConstraint.
         | BFalse => Some false
         end.
 
-    Program Definition floatConstraintWitness (c : floatConstraint) : option float_std :=
+    Definition floatConstraintWitness (c : floatConstraint) : option float_std :=
         match c with
         | FEmpty => None
-        | FSingleton a => Some a
-        | FRange a b p =>
-            (if is_infinity a then
-                if is_infinity b then
-                    Some (exist _ 0.0 _)
-                else
-                    Some (exist _ (next_down (proj1_sig b)) _)
-            else
-                Some a)%float
+        | FSingleton a
+        | FBounded a _ _
+        | FUnbounded a => Some a
         end.
-    Next Obligation. Admitted.
 
     Program Definition senumConstraintWitness {s : StringSet.t} (c : senumConstraint s) : option (string_enum s) :=
         match c with
@@ -143,56 +138,73 @@ Section FeatureSpaceConstraint.
 
     Program Definition floatConstraintLeftSplit (t : float_test) (c : floatConstraint) : floatConstraint :=
         let '(float_lt x) := t in
-        if is_infinity (proj1_sig x) then
-            if get_sign (proj1_sig x) then
-                c
-            else
-                FEmpty
-        else
-            match c with
-            | FEmpty => FEmpty
-            | FSingleton a =>
-                match FloatOTF.compare a x with
-                | Lt => FSingleton a
-                | _ => FEmpty
+        match c with
+        | FEmpty => FEmpty
+        | FSingleton a =>
+            match FloatOTF.compare a x with
+            | Lt => FSingleton a
+            | _ => FEmpty
+            end
+        | FBounded a b p =>
+            match FloatOTF.compare a x with
+            | Lt =>
+                match FloatOTF.compare x b with
+                | Lt => FBounded a x _
+                | _ => FBounded a b p
                 end
-            | FRange a b p =>
-                match FloatOTF.compare a x with
-                | Lt =>
-                    match FloatOTF.compare b x with
-                    | Lt => FRange a b p
-                    | _ => FRange a x _
-                    end
-                | _ => FEmpty
-                end
-            end.
+            | _ => FEmpty
+            end
+        | FUnbounded a =>
+            match FloatOTF.compare a x with
+            | Lt => FBounded a x _
+            | _ => FEmpty
+            end
+        end.
 
     Program Definition floatConstraintRightSplit (t : float_test) (c : floatConstraint) : floatConstraint :=
         let '(float_lt x) := t in
-        if is_infinity (proj1_sig x) then
-            if get_sign (proj1_sig x) then
-                FEmpty
-            else
-                c
-        else
-            match c with
-            | FEmpty => FEmpty
-            | FSingleton a =>
-                match FloatOTF.compare a x with
-                | Lt => FEmpty
-                | _ => FSingleton a
+        match c with
+        | FEmpty => FEmpty
+        | FSingleton a =>
+            match FloatOTF.compare a x with
+            | Lt => FEmpty
+            | _ => FSingleton a
+            end
+        | FBounded a b p =>
+            match FloatOTF.compare a x with
+            | Lt =>
+                match FloatOTF.compare x b with
+                | Lt => FBounded x b _
+                | _ => FEmpty
                 end
-            | FRange a b p =>
-                match FloatOTF.compare b x with
-                | Lt => FEmpty
-                | _ =>
-                    match FloatOTF.compare a x with
-                    | Lt => FRange x b _
-                    | _ => FRange a b p
-                    end
-                end
-            end.
-    Admit Obligations.
+            | _ => FBounded a b p
+            end
+        | FUnbounded a =>
+            match FloatOTF.compare a x with
+            | Lt => FEmpty
+            | _ => FUnbounded x
+            end
+        end.
+
+    Lemma simpl_floatConstraintLeftSplit :
+        forall (a b x : float_std) (p : FloatOTF.compare a b = Lt),
+            FloatOTF.compare a x = Lt ->
+            FloatOTF.compare x b = Lt ->
+            exists q,
+                floatConstraintLeftSplit (float_lt x) (FBounded a b p) = FBounded a x q.
+    Proof.
+        intros a b x p q r; eexists.
+    Admitted.
+
+    Lemma simpl_floatConstraintRightSplit :
+        forall (a b x : float_std) (p : FloatOTF.compare a b = Lt),
+            FloatOTF.compare a x = Lt ->
+            FloatOTF.compare x b = Lt ->
+            exists q,
+                floatConstraintLeftSplit (float_lt x) (FBounded a b p) = FBounded x b q.
+    Proof.
+        intros a b x p q r; eexists.
+    Admitted.
 
     Program Definition senumConstraintLeftSplit {s : StringSet.t} (t : string_enum_test s) (c : senumConstraint s) : senumConstraint s :=
         let '(subset_mem _ filt) := t in
@@ -218,7 +230,7 @@ Section FeatureSpaceConstraint.
     (* Initialize a constraint as either the full domain or a singleton value *)
 
     Definition boolConstraintInitFull := BAny.
-    Program Definition floatConstraintInitFull := FRange FloatOTF.neg_inf FloatOTF.inf _.
+    Program Definition floatConstraintInitFull := FUnbounded FloatOTF.neg_inf.
     Definition senumConstraintInitFull (s : StringSet.t) := SEnum s s (@Subset_refl _).
 
     Definition boolConstraintInitSingleton (b : bool) :=
@@ -298,34 +310,13 @@ Section FeatureSpaceConstraint.
             floatConstraintWitness c = Some x -> floatConstraintSat c x.
     Proof.
         intros c x; destruct c; simpl; intros H; try (now inversion H);
-        destruct (is_infinity (proj1_sig a)) eqn:Hinfa.
-        -   assert (Ea : FloatOTF.eq a FloatOTF.neg_inf).
-            {
-                apply FloatOTFFacts.inf_lower_isn with (y := b); try assumption;
-                now apply FloatOTFFacts.compare_lt_iff.
-            }
-            destruct (is_infinity (proj1_sig b)) eqn:Hinfb.
-            +   assert (Eb : FloatOTF.eq b FloatOTF.inf).
-                {
-                    apply FloatOTFFacts.inf_upper_isp with (x := a); try assumption;
-                    now apply FloatOTFFacts.compare_lt_iff.
-                }
-                destruct x as (x & px); inversion H; split; try (now left);
-                rewrite Ea; apply FloatOTFFacts.le_neg_inf.
-            +   split; try (rewrite Ea; apply FloatOTFFacts.le_neg_inf);
-                inversion H; destruct x as (x & px); right; apply FloatOTFFacts.next_down_lt.
-        -   inversion H; split; try apply FloatOTFFacts.le_preorder;
-            subst x; right; now apply FloatOTFFacts.compare_lt_iff.
+        split; inversion H; subst x; now try now apply FloatOTFFacts.compare_lt_iff.
     Qed.
 
     Theorem floatConstraintWitnessNoneEmpty :
         forall (c : floatConstraint),
             floatConstraintWitness c = None -> floatConstraintEmpty c = true.
-    Proof.
-        intros c H; destruct c; try (now inversion H); simpl in H;
-        destruct (is_infinity (proj1_sig a)); destruct (is_infinity (proj1_sig b));
-        inversion H.
-    Qed.
+    Proof. intros c H; destruct c; now inversion H. Qed.
 
     Lemma float_test_compare :
         forall (x y : float_std), tests float_feature (float_lt y) x = true <-> FloatOTF.compare x y = Lt.
@@ -340,6 +331,30 @@ Section FeatureSpaceConstraint.
         forall (c : floatConstraint) (t : float_test) (x : float_std),
             floatConstraintSat (floatConstraintLeftSplit t c) x <->
                 floatConstraintSat c x /\ tests float_feature t x = true.
+    Proof.
+        intros c [y] x; rewrite float_test_compare;
+        destruct c as [| a | a b p | a ];
+        [
+        | destruct (FloatOTF.compare a y) eqn:Hay
+        | destruct (FloatOTF.compare a y) eqn:Hay; destruct (FloatOTF.compare y b) eqn:Hyb
+        | destruct (FloatOTF.compare a y) eqn:Hay
+        ]; split;
+            try (intros abs; now inversion abs);
+            simpl; try (rewrite Hyb); try (rewrite Hay);
+            try (intros abs; now inversion abs);
+            try (intros (E & abs); rewrite <- E in abs; now rewrite abs in Hay).
+        -   intros H; inversion H; now subst a.
+        -   apply FloatOTFFacts.compare_lt_iff in p;
+            apply FloatOTFFacts.compare_eq_iff in Hay;
+            apply FloatOTFFacts.compare_eq_iff in Hyb;
+            exfalso; apply p; now transitivity (y).
+        -   destruct simpl_floatConstraintLeftSplit with a b y p; try assumption.
+        -   admit.
+        -   apply FloatOTFFacts.compare_lt_iff in p;
+            apply FloatOTFFacts.compare_eq_iff in Hay;
+            apply FloatOTFFacts.compare_gt_iff in Hyb;
+            exfalso; apply p; now transitivity (y).
+        -   
     Admitted.
 
     Theorem floatConstraintSatSplitRight :
@@ -351,7 +366,7 @@ Section FeatureSpaceConstraint.
     Theorem floatConstraintInitFullSat :
         forall (x : float_std),
             floatConstraintSat floatConstraintInitFull x.
-    Proof. intros x; split; [ apply FloatOTFFacts.le_neg_inf | now left ]. Qed.
+    Proof. intros x; apply FloatOTFFacts.le_neg_inf. Qed.
 
     Theorem floatConstraintWitnessSingleton :
         forall (x : float_std),

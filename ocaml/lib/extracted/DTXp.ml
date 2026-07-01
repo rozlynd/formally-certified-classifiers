@@ -4,7 +4,6 @@ open Equalities
 open Explainers
 open Features
 open FloatUtils
-open PrimFloat
 open Utils
 open Xp
 
@@ -41,7 +40,8 @@ type boolConstraint =
 type floatConstraint =
 | FEmpty
 | FSingleton of float_std
-| FRange of float_std * float_std
+| FBounded of float_std * float_std
+| FUnbounded of float_std
 
 type senumConstraint =
   StringSet.t
@@ -76,12 +76,8 @@ let boolConstraintWitness = function
 let floatConstraintWitness = function
 | FEmpty -> None
 | FSingleton a -> Some a
-| FRange (a, b) ->
-  if is_infinity a
-  then if is_infinity b
-       then Some (Float64.of_float (0x0p+0))
-       else Some (next_down b)
-  else Some a
+| FBounded (a, _) -> Some a
+| FUnbounded a -> Some a
 
 (** val senumConstraintWitness :
     StringSet.t -> senumConstraint -> string_enum option **)
@@ -109,48 +105,52 @@ let boolConstraintRightSplit = function
 (** val floatConstraintLeftSplit :
     float_test -> floatConstraint -> floatConstraint **)
 
-let floatConstraintLeftSplit t0 c =
-  if is_infinity t0
-  then if get_sign t0 then c else FEmpty
-  else (match c with
-        | FEmpty -> FEmpty
-        | FSingleton a ->
-          let filtered_var = FloatOTF.compare a t0 in
-          (match filtered_var with
-           | Lt -> FSingleton a
-           | _ -> FEmpty)
-        | FRange (a, b) ->
-          let filtered_var = FloatOTF.compare a t0 in
-          (match filtered_var with
-           | Lt ->
-             let filtered_var0 = FloatOTF.compare b t0 in
-             (match filtered_var0 with
-              | Lt -> FRange (a, b)
-              | _ -> FRange (a, t0))
-           | _ -> FEmpty))
+let floatConstraintLeftSplit t0 = function
+| FEmpty -> FEmpty
+| FSingleton a ->
+  let filtered_var = FloatOTF.compare a t0 in
+  (match filtered_var with
+   | Lt -> FSingleton a
+   | _ -> FEmpty)
+| FBounded (a, b) ->
+  let filtered_var = FloatOTF.compare a t0 in
+  (match filtered_var with
+   | Lt ->
+     let filtered_var0 = FloatOTF.compare t0 b in
+     (match filtered_var0 with
+      | Lt -> FBounded (a, t0)
+      | _ -> FBounded (a, b))
+   | _ -> FEmpty)
+| FUnbounded a ->
+  let filtered_var = FloatOTF.compare a t0 in
+  (match filtered_var with
+   | Lt -> FBounded (a, t0)
+   | _ -> FEmpty)
 
 (** val floatConstraintRightSplit :
     float_test -> floatConstraint -> floatConstraint **)
 
-let floatConstraintRightSplit t0 c =
-  if is_infinity t0
-  then if get_sign t0 then FEmpty else c
-  else (match c with
-        | FEmpty -> FEmpty
-        | FSingleton a ->
-          let filtered_var = FloatOTF.compare a t0 in
-          (match filtered_var with
-           | Lt -> FEmpty
-           | _ -> FSingleton a)
-        | FRange (a, b) ->
-          let filtered_var = FloatOTF.compare b t0 in
-          (match filtered_var with
-           | Lt -> FEmpty
-           | _ ->
-             let filtered_var0 = FloatOTF.compare a t0 in
-             (match filtered_var0 with
-              | Lt -> FRange (t0, b)
-              | _ -> FRange (a, b))))
+let floatConstraintRightSplit t0 = function
+| FEmpty -> FEmpty
+| FSingleton a ->
+  let filtered_var = FloatOTF.compare a t0 in
+  (match filtered_var with
+   | Lt -> FEmpty
+   | _ -> FSingleton a)
+| FBounded (a, b) ->
+  let filtered_var = FloatOTF.compare a t0 in
+  (match filtered_var with
+   | Lt ->
+     let filtered_var0 = FloatOTF.compare t0 b in
+     (match filtered_var0 with
+      | Lt -> FBounded (t0, b)
+      | _ -> FEmpty)
+   | _ -> FBounded (a, b))
+| FUnbounded a ->
+  let filtered_var = FloatOTF.compare a t0 in
+  (match filtered_var with
+   | Lt -> FEmpty
+   | _ -> FUnbounded t0)
 
 (** val senumConstraintLeftSplit :
     StringSet.t -> string_enum_test -> senumConstraint -> senumConstraint **)
@@ -172,7 +172,7 @@ let boolConstraintInitFull =
 (** val floatConstraintInitFull : floatConstraint **)
 
 let floatConstraintInitFull =
-  FRange (FloatOTF.neg_inf, FloatOTF.inf)
+  FUnbounded FloatOTF.neg_inf
 
 (** val senumConstraintInitFull : StringSet.t -> senumConstraint **)
 

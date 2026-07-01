@@ -10,11 +10,6 @@ module FloatOTF =
   let compare x y =
     if leb x y then if leb y x then Eq else Lt else Gt
 
-  (** val inf : float_std **)
-
-  let inf =
-    infinity
-
   (** val neg_inf : float_std **)
 
   let neg_inf =

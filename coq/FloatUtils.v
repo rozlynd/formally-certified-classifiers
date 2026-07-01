@@ -295,22 +295,9 @@ Module FloatOTFFacts.
     Include OrderedTypeFullFacts FloatOTF.
     Import FloatOTF.
 
-    Lemma le_inf : forall x, le x inf.
-    Admitted.
+    (*Lemma le_inf : forall x, le x inf.*) (* unused *)
 
     Lemma le_neg_inf : forall x, le neg_inf x.
-    Admitted.
-
-    Lemma inf_lower_isn : forall x y, is_infinity (proj1_sig x) = true -> lt x y -> eq x neg_inf.
-    Admitted.
-
-    Lemma inf_upper_isp : forall x y, is_infinity (proj1_sig y) = true -> lt x y -> eq y inf.
-    Admitted.
-
-    Lemma next_down_lt : forall x p, lt (exist _ (next_down (proj1_sig x)) p) x.
-    Admitted.
-
-    Lemma next_up_lt : forall x p, lt x (exist _ (next_up (proj1_sig x)) p).
     Admitted.
 
 End FloatOTFFacts.
