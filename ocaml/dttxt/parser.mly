@@ -23,7 +23,6 @@ open Parsing_utils
 %token RightParenthesisToken  // : ")"
 %token LeftBracketToken       // : "["
 %token RightBracketToken      // : "]"
-%token SemicolonToken         // : ";"
 %token ComaToken              // : ","
 
 %token EOF
