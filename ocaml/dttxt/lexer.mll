@@ -29,6 +29,7 @@ rule token = parse
   | '['          { LeftBracketToken }
   | ']'          { RightBracketToken }
   | ','          { ComaToken }
+  | ':'          { ColonToken }
   | 'N'          { NodeToken }
   | 'L'          { LeafToken }
   | 'V'          { VectorToken }

@@ -24,6 +24,7 @@ open Parsing_utils
 %token LeftBracketToken       // : "["
 %token RightBracketToken      // : "]"
 %token ComaToken              // : ","
+%token ColonToken             // : ":"
 
 %token EOF
 
@@ -44,17 +45,17 @@ open Parsing_utils
   FeatureList -> F( Features )
   Features -> Feature, Features
   Features -> Feature
-  FeatureList -> *vide*
+  FeatureList -> *empty*
   Feature -> bool
   Feature -> float
   Feature -> [ StringList ]
   StringList -> StringToken, StringList
   StringList -> StringToken
-  StringList -> *vide*
+  StringList -> *empty*
 
   Tree -> Node, Tree
   Tree -> Node          (* pour pouvoir ne pas écrire ',' à la fin (car c'est une liste) *)
-  Tree ->  *vide*
+  Tree ->  *empty*
   Node -> N(int, Value, int, int)
   Node -> L(int)
   Value -> null
@@ -62,7 +63,7 @@ open Parsing_utils
 
   Vector -> V( VectorElements )
   VectorElements -> VectorElement, VectorElements
-  VectorElements -> *vide*
+  VectorElements -> *empty*
   VectorElement -> TrueToken
   VectorElement -> FalseToken
   VectorElement -> FloatToken
@@ -75,7 +76,7 @@ main: fs = featurelist t = tree v = vector EOF { fs, t, v }
 featurelist: FeatureListToken LeftParenthesisToken fs = features RightParenthesisToken { fs }
 
 features:
-  | /* vide */     { [ ] }
+  | /* empty */    { [ ] }
   | f = feature    { [f] }
   | f = feature ComaToken fs = features    { f::fs }
 
@@ -85,7 +86,7 @@ feature:
   | LeftBracketToken s = stringlist RightBracketToken { ParsedEnumFeature s }
 
 stringlist:
-  | /* vide */         { [ ] }
+  | /* empty */        { [ ] }
   | s = StringToken    { [s] }
   | s = StringToken ComaToken ss = stringlist    { s::ss }
 
@@ -94,7 +95,7 @@ stringlist:
 tree: TreeToken LeftParenthesisToken ns = nodes RightParenthesisToken { ns }
 
 nodes:
-  | /* vide */        { [ ] }
+  | /* empty */       { [ ] }
   | n = node          { [n] }
   | n = node ComaToken ns = nodes    { n::ns }
 
@@ -107,14 +108,14 @@ node:
 value:
   | NullToken       { ParsedNullValue }
   | f = FloatToken  { ParsedFloatValue (f) }
-  // | e = EnumToken    { ParsedEnumValue (e) }
+  | LeftBracketToken s = stringlist RightBracketToken   { ParsedEnumValue (s) }
 
 
 
 vector: VectorToken LeftParenthesisToken vs = vector_elements RightParenthesisToken { vs }
 
 vector_elements:
-  | /* vide */            { [ ] }
+  | /* empty */           { [ ] }
   | ve = vector_element   { [ve] }
   | ve = vector_element ComaToken ves = vector_elements   { ve::ves }
 
