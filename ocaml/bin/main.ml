@@ -26,15 +26,17 @@ let string_of_int_list l =
 ;;
 
 let help_string = 
-  "The program must be called like this :                             \n
-  rfxp [-v] [ -a | -c | -ac | -all ] <input_file> [<output_file>]     \n
-    -v    verbose                                                     \n
-    -a    get one AXp                                                 \n
-    -c    get one CXp                                                 \n
-    -ac   get one AXp and one CXp                                     \n
-    -all  get all AXp and all CXp (caution : AXp and CXp are mixed)   \n\n
+  "The program must be called like this :
+  rfxp [-v] [ -a | -c | -ac | (-all) ] <input_file> [<output_file>]  
+    -v    verbose                                                  
+    -a    get one AXp                                              
+    -c    get one CXp                                              
+    -ac   get one AXp and one CXp                                  
+    (-all  get all AXp and all CXp (caution : AXp and CXp are mixed) (not available yet))
+    
+    -h, -help, --help   print this help message
 
-    <input_file>    the file containing Decision Tree informations.   \n
+    <input_file>    the file containing Decision Tree informations.
     <output_file>   the file to write the results."
 ;;
 
@@ -53,7 +55,6 @@ type mode =
 
 (* Write a string message in a file named filename. *)
 let write_in_file message filename = 
-  (* let oc = open_out ~mode:Open_append filename in *)
   let oc = open_out_gen [Open_append; Open_creat] 0o666 filename in
   Printf.fprintf oc "%s\n" message;
   close_out oc
@@ -91,48 +92,55 @@ let main_file verbose mode input_file output_file =
       print_endline ("CXp : " ^ outC);
       write_in_file ("CXp : " ^ outC) output_file;
     end;
-  
-  write_in_file "test" output_file;
 
   log "info : main executed.\n";
 ;;
+
+exception Break;;
 
 
 let () =
   let verbose = ref false in
   let mode = ref AXp in
-  let input_file = ref "data.txt" in
+  let input_file = ref "" in  (* not read default value, has to be modified *)
   let input_file_given = ref false in
-  let output_file = ref "dt_explanation_result.txt" in
+  let output_file = ref "dt_explanation_result.txt" in (* default value if not given *)
   let output_file_given = ref false in
-  for i=1 to (Array.length Sys.argv - 1) do
-    let a =  Sys.argv.(i) in
-    if a = "-v" then
-      verbose := true
-    else if a = "-a" then
-      mode := AXp
-    else if a = "-c" then
-      mode := CXp
-    else if a = "-ac" then
-      mode := Both
-    else if a = "-all" then
-      mode := All
-    else if a.[0] = '-' then
-      failwith ("Error : unknown parameter " ^ a)
-    else if (not !input_file_given) then
-      begin 
-        input_file_given := true; 
-        input_file := a
-      end
-    else if (not !output_file_given) then
-      begin 
-        output_file_given := true; 
-        output_file := a
-      end
-    else
-      failwith ("Error in command line arguments.\n" ^ help_string)
-  done;
-  if !input_file_given then 
-    main_file !verbose !mode !input_file !output_file
-  else failwith "no input file given"
+  try
+    for i=1 to (Array.length Sys.argv - 1) do
+      let a =  Sys.argv.(i) in
+      if a = "-h" || a = "-help" || a = "--help" then
+        raise Break
+      else if a = "-v" then
+        verbose := true
+      else if a = "-a" then
+        mode := AXp
+      else if a = "-c" then
+        mode := CXp
+      else if a = "-ac" then
+        mode := Both
+      else if a = "-all" then
+        mode := All
+      else if a.[0] = '-' then
+        failwith ("Error : unknown parameter " ^ a)
+      else if (not !input_file_given) then
+        begin 
+          input_file_given := true; 
+          input_file := a
+        end
+      else if (not !output_file_given) then
+        begin 
+          output_file_given := true; 
+          output_file := a
+        end
+      else 
+        begin
+          print_endline ("Error in command line arguments.\n" ^ help_string);
+          failwith "Error in command line arguments"
+        end
+    done;
+    if !input_file_given then 
+      main_file !verbose !mode !input_file !output_file
+    else failwith "no input file given"
+  with Break -> print_endline help_string
 
