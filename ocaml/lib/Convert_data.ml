@@ -56,7 +56,7 @@ let rec _tree_from_parsing to_fin t = match t with
     begin
       match t with
       | ParsedLeaf(a) -> Leaf(string_of_int a), q (* il faut convertir int en string pour l'instant *)
-      | ParsedNode(a, b, c, d) ->
+      | ParsedNode(a, b) ->
         let tg, gq = _tree_from_parsing to_fin q in
         let td, dq = _tree_from_parsing to_fin gq in
         begin

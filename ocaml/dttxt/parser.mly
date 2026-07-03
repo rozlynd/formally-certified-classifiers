@@ -39,7 +39,6 @@ open Parsing_utils
 
 %%
 (*
-
   E -> FeatureList Tree Vector
   
   FeatureList -> F( Features )
@@ -102,9 +101,7 @@ nodes:
 node:
   | NodeToken LeftParenthesisToken 
       fi = IntToken ComaToken
-      ti = value ComaToken
-      lci = IntToken ComaToken
-      rci = IntToken RightParenthesisToken                            { ParsedNode (fi, ti, lci, rci) }
+      ti = value RightParenthesisToken                            { ParsedNode (fi, ti) }
   | LeafToken LeftParenthesisToken c = IntToken RightParenthesisToken { ParsedLeaf (c) }
 
 value:

@@ -16,7 +16,7 @@ type parsed_value =
 ;;
 type parsed_tree_element =
   | ParsedLeaf of int (* class number *)
-  | ParsedNode of int * parsed_value * int * int (* indice_feature, threshold, indice_fils_gauche, indice_fils_droit *)
+  | ParsedNode of int * parsed_value (* indice_feature, threshold *)
 ;;
 (* Type d'un arbre parsé à la lecture d'un fichier formatté.*)
 type parsed_tree = parsed_tree_element list;;
@@ -111,7 +111,7 @@ let string_of_value v = match v with
 ;;
 let string_of_tree_element ve = match ve with
   | ParsedLeaf(c) -> "L(" ^ (string_of_int c) ^ ")"
-  | ParsedNode(index_feature, value, lc, rc) -> 
+  | ParsedNode(index_feature, value) -> 
       ( "N(" ^ (string_of_int index_feature) ^ ", " ^ (string_of_value value) ^ ")" );
 ;;
 let rec _string_of_tree t = match t with

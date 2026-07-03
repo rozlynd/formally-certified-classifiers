@@ -35,9 +35,9 @@ def export_tree(dt: tree.DecisionTreeClassifier)-> str:
 
     ```
     T(
-        N(0, 0.8, 1, 2),
+        N(0, 0.8),
          L(0),
-         N(1, 1.75, 3, 4),
+         N(1, 1.75),
           L(1),
           L(2)
     )
@@ -65,9 +65,7 @@ def export_tree(dt: tree.DecisionTreeClassifier)-> str:
             line = (
                 prefix + "N(" +
                 str(t.feature[node]) + ", " +
-                t.threshold[node].hex() + ", " + # use the hex representation of floats to avoid approximations
-                str(left_child_index) + ", " +
-                str(right_child_index) +
+                t.threshold[node].hex() + # use the hex representation of floats to avoid approximations
                 "),"
             )
 
