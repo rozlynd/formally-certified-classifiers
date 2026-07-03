@@ -53,17 +53,25 @@ type mode =
   | All
 ;;
 
-(* Write a string message in a file named filename. *)
-let write_in_file message filename = 
-  let oc = open_out_gen [Open_append; Open_creat] 0o666 filename in
+
+
+let open_and_clear_file filename =
+  open_out_gen [Open_wronly; Open_creat] 0o666 filename
+;;
+let write_in_file oc message = 
   Printf.fprintf oc "%s\n" message;
-  close_out oc
 ;;
 
+
+
+
+
 let main_file verbose mode input_file output_file =
+  
   let log = logger verbose in
 
-  (* let _filename = "filename.txt" in *)
+  let oc = open_and_clear_file output_file in (* open the output file *)
+
   let module D = Driver_file.MakeData (struct
     let filename = input_file
   end) in
@@ -81,7 +89,7 @@ let main_file verbose mode input_file output_file =
       let axp = FindA.findAXp Input.S.all in
       let outA = string_of_int_list (as_list (module Input.S) axp) in
       print_endline ("AXp : " ^ outA);
-      write_in_file ("AXp : " ^ outA) output_file;
+      write_in_file oc ("AXp : " ^ outA);
     end;
     
   if mode = CXp || mode = Both then
@@ -90,10 +98,11 @@ let main_file verbose mode input_file output_file =
       let cxp = FindC.findCXp Input.S.all in
       let outC = string_of_int_list (as_list (module Input.S) cxp) in
       print_endline ("CXp : " ^ outC);
-      write_in_file ("CXp : " ^ outC) output_file;
+      write_in_file oc ("CXp : " ^ outC);
     end;
 
   log "info : main executed.\n";
+  close_out oc (* close the output file *)
 ;;
 
 exception Break;;
