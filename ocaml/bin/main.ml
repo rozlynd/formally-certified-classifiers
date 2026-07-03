@@ -1,12 +1,8 @@
 open Rfxp
 open Driver_file
-(* open Driver *)
 open Extracted
-(* open Import *)
 open DTXp
-(* open DT *)
 open Utils
-(* open Printing_things *)
 
 
 
@@ -45,7 +41,6 @@ let help_string =
 let logger (verbose:bool) (s:string) =
   if verbose then print_string s
 ;;
-
 
 
 (* enum type giving the research goal. *)
@@ -141,73 +136,3 @@ let () =
     main_file !verbose !mode !input_file !output_file
   else failwith "no input file given"
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-(* let () =
-  if Array.length Sys.argv = 2 then
-    main_file Sys.argv.(1) false
-  else if Array.length Sys.argv = 3 && Sys.argv.(1) = "-v" then
-    main_file Sys.argv.(2) true
-  else
-    failwith ("Error in command line arguments.\n" ^ help_string) *)
-
-
-(* let main_parsing () =
-  let filename = "test_input_file.txt" in
-  let fs, t, v = Import.Parse_file.read_file filename in
-  Import.Parsing_utils.print_features fs;
-  Import.Parsing_utils.print_tree t;
-  Import.Parsing_utils.print_vector v
-;; *)
-
-(* let main_file _filename verbose =
-  let log = logger verbose in
-
-  (* let _filename = "filename.txt" in *)
-  let module D = Driver_file.MakeData (struct
-    let filename = _filename
-  end) in
-
-  log "debug : défintion du module Input...";
-  let module Input = MakeDTInputProblem (D) in
-  log "done.\n\n";
-
-
-  log "debug : défintion du module Find..." ;
-  let module FindA = DtAXpFinder (Input) in
-  let module FindC = DtCXpFinder (Input) in
-  log "done.\n";
-
-  log "debug : recherche...";
-  let axp = FindA.findAXp Input.S.all in
-  let cxp = FindC.findCXp Input.S.all in
-  log "done.\n";
-
-  log "debug : transformation en liste...";
-  let outA = string_of_int_list (as_list (module Input.S) axp) in
-  let outC = string_of_int_list (as_list (module Input.S) cxp) in
-  log "done.\n";
-
-  log "\nresult :\n\n";
-  print_endline outA;
-  print_endline outC;
-  log "\nmain executed.\n\n";
-;; *)
