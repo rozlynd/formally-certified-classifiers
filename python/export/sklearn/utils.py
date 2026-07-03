@@ -34,7 +34,16 @@ def write_str_in_file(filename: str, text: str)-> None:
     with open(filename, 'w') as f:
         f.write(text)
 
-
+def string_of_list(l: list[str])-> str:
+    if l == []:
+        return "[]"
+    if len(l) == 1:
+        return "[" + str(l[0]) + "]"
+    # else
+    res = "[\n"
+    for e in l:
+        res += str(e) + ',\n'
+    return res[:-2] + "\n]"
 
 
 

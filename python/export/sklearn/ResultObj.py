@@ -1,15 +1,20 @@
-
+from utils import string_of_list
 class ResultObj:
 
     __axps: list
     __cxps: list
 
     def __init__(self, _axps=None, _cxps=None):
-        axps = _axps
-        cxps = _cxps
+        self.__axps = _axps
+        self.__cxps = _cxps
     
     def __repr__(self):
-        return "ResultObj(axps, cxps)"
+        return (
+            "ResultObj(\n" +
+            f"\taxps : {string_of_list(self.__axps)},\n" +
+            f"\tcxps : {string_of_list(self.__cxps)}" +
+            "\n)"
+        )
 
     def get_axps(self):
         return self.__axps

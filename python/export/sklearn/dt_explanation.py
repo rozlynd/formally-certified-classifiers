@@ -51,15 +51,16 @@ def explain(dt: tree.DecisionTreeClassifier, v: list, data_filename: str ="data.
 
     log("begin running ocaml explanation...")
 
-    verification_prog_path = "../../ocaml/_build/default/bin"
+    verification_prog_path = "../../../ocaml/_build/default/bin"
     command = f"""./{verification_prog_path}/main.exe -ac {data_filename} {answer_filename}"""
 
     ## run the command line in a shell, and capture the output
-    res = subprocess.run(command, check=True, capture_output=True, shell=True, executable="/bin/bash")
+    res = subprocess.run(command, check=True, capture_output=False, shell=True, executable="/bin/bash")
     log("end running ocaml explanation.")
     
-    # res_str = str(res.stdout, "utf-8") # translate bytes into string
-    # log("output :" + res_str)
+    # err_str = str(res.stderr, "utf-8") # translate bytes into string
+    # if err_str != "":
+    #     log("err :" + err_str)
 
     ## parse ocaml answer file
     answer = read_answer_file(answer_filename)
