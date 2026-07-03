@@ -36,7 +36,7 @@ StringList -> StringToken
 StringList -> *empty*
 
 Tree -> T( TreeElements )
-TreeElements -> Node, Tree
+TreeElements -> Node, TreeElements
 TreeElements -> Node
 TreeElements -> *empty*
 Node -> N(int, Value, int, int)
@@ -56,7 +56,7 @@ VectorElement -> StringToken
 
 You also can add comments in OCaml format in dttxt files, that is : `(* comment *)`
 
-_**NB :** tabulations, spaces and new lines are ignored._
+_**NB :** comments, tabulations, spaces and new lines are ignored._
 
 
 
@@ -103,21 +103,21 @@ The node `N(0, 10.)` corresponds to :
 ```
      width < 10.0
         /    \
-      yes     no
+      no     yes
       /        \
 ```
 The node `N(3, ["red", "green"]),` corresponds to :
 ```
 color in ["red", "green"].
         /    \
-      yes     no
+      no     yes
       /        \
 ```
 The node `N(2, ()),` corresponds to :
 ```
       is_filled
         /    \
-     true   false
+     false   true
       /        \
 ```
 
