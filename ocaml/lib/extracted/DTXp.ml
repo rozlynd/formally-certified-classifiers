@@ -102,30 +102,30 @@ let boolConstraintRightSplit = function
 | BTrue -> BEmpty
 | _ -> BFalse
 
+(** val float_lt_dec : float_std -> float_std -> bool **)
+
+let float_lt_dec x y =
+  let c = FloatOTF.compare x y in (match c with
+                                   | Lt -> true
+                                   | _ -> false)
+
 (** val floatConstraintLeftSplit :
     float_test -> floatConstraint -> floatConstraint **)
 
 let floatConstraintLeftSplit t0 = function
 | FEmpty -> FEmpty
 | FSingleton a ->
-  let filtered_var = FloatOTF.compare a t0 in
-  (match filtered_var with
-   | Lt -> FSingleton a
-   | _ -> FEmpty)
+  let filtered_var = float_lt_dec a t0 in
+  if filtered_var then FSingleton a else FEmpty
 | FBounded (a, b) ->
-  let filtered_var = FloatOTF.compare a t0 in
-  (match filtered_var with
-   | Lt ->
-     let filtered_var0 = FloatOTF.compare t0 b in
-     (match filtered_var0 with
-      | Lt -> FBounded (a, t0)
-      | _ -> FBounded (a, b))
-   | _ -> FEmpty)
+  let filtered_var = float_lt_dec a t0 in
+  if filtered_var
+  then let filtered_var0 = float_lt_dec t0 b in
+       if filtered_var0 then FBounded (a, t0) else FBounded (a, b)
+  else FEmpty
 | FUnbounded a ->
-  let filtered_var = FloatOTF.compare a t0 in
-  (match filtered_var with
-   | Lt -> FBounded (a, t0)
-   | _ -> FEmpty)
+  let filtered_var = float_lt_dec a t0 in
+  if filtered_var then FBounded (a, t0) else FEmpty
 
 (** val floatConstraintRightSplit :
     float_test -> floatConstraint -> floatConstraint **)
@@ -133,24 +133,17 @@ let floatConstraintLeftSplit t0 = function
 let floatConstraintRightSplit t0 = function
 | FEmpty -> FEmpty
 | FSingleton a ->
-  let filtered_var = FloatOTF.compare a t0 in
-  (match filtered_var with
-   | Lt -> FEmpty
-   | _ -> FSingleton a)
+  let filtered_var = float_lt_dec a t0 in
+  if filtered_var then FEmpty else FSingleton a
 | FBounded (a, b) ->
-  let filtered_var = FloatOTF.compare a t0 in
-  (match filtered_var with
-   | Lt ->
-     let filtered_var0 = FloatOTF.compare t0 b in
-     (match filtered_var0 with
-      | Lt -> FBounded (t0, b)
-      | _ -> FEmpty)
-   | _ -> FBounded (a, b))
+  let filtered_var = float_lt_dec a t0 in
+  if filtered_var
+  then let filtered_var0 = float_lt_dec t0 b in
+       if filtered_var0 then FBounded (t0, b) else FEmpty
+  else FBounded (a, b)
 | FUnbounded a ->
-  let filtered_var = FloatOTF.compare a t0 in
-  (match filtered_var with
-   | Lt -> FEmpty
-   | _ -> FUnbounded t0)
+  let filtered_var = float_lt_dec a t0 in
+  if filtered_var then FUnbounded t0 else FUnbounded a
 
 (** val senumConstraintLeftSplit :
     StringSet.t -> string_enum_test -> senumConstraint -> senumConstraint **)

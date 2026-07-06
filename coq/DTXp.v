@@ -1,6 +1,6 @@
 From RFXP Require Import FloatUtils Utils Features DT Xp Explainers.
 
-Require Import Floats Equality Eqdep.
+Require Import Floats Equality Eqdep Setoid.
 
 
 Module Type DTExplanationProblem <: ExplanationProblem :=
@@ -136,28 +136,32 @@ Section FeatureSpaceConstraint.
         | BFalse | BAny => BFalse
         end.
 
+    Definition float_lt_dec (x y : float_std) : { FloatOTF.compare x y = Lt } + { FloatOTF.compare x y <> Lt }.
+        destruct (FloatOTF.compare x y); try (left; reflexivity); now right.
+    Defined.
+
     Program Definition floatConstraintLeftSplit (t : float_test) (c : floatConstraint) : floatConstraint :=
         let '(float_lt x) := t in
         match c with
         | FEmpty => FEmpty
         | FSingleton a =>
-            match FloatOTF.compare a x with
-            | Lt => FSingleton a
-            | _ => FEmpty
+            match float_lt_dec a x with
+            | left _ => FSingleton a
+            | right _ => FEmpty
             end
         | FBounded a b p =>
-            match FloatOTF.compare a x with
-            | Lt =>
-                match FloatOTF.compare x b with
-                | Lt => FBounded a x _
-                | _ => FBounded a b p
+            match float_lt_dec a x with
+            | left _ =>
+                match float_lt_dec x b with
+                | left _ => FBounded a x _
+                | right _ => FBounded a b p
                 end
-            | _ => FEmpty
+            | right _ => FEmpty
             end
         | FUnbounded a =>
-            match FloatOTF.compare a x with
-            | Lt => FBounded a x _
-            | _ => FEmpty
+            match float_lt_dec a x with
+            | left _ => FBounded a x _
+            | right _ => FEmpty
             end
         end.
 
@@ -166,45 +170,25 @@ Section FeatureSpaceConstraint.
         match c with
         | FEmpty => FEmpty
         | FSingleton a =>
-            match FloatOTF.compare a x with
-            | Lt => FEmpty
-            | _ => FSingleton a
+            match float_lt_dec a x with
+            | left _ => FEmpty
+            | right _ => FSingleton a
             end
         | FBounded a b p =>
-            match FloatOTF.compare a x with
-            | Lt =>
-                match FloatOTF.compare x b with
-                | Lt => FBounded x b _
-                | _ => FEmpty
+            match float_lt_dec a x with
+            | left _ =>
+                match float_lt_dec x b with
+                | left _ => FBounded x b _
+                | right _ => FEmpty
                 end
-            | _ => FBounded a b p
+            | right _ => FBounded a b p
             end
         | FUnbounded a =>
-            match FloatOTF.compare a x with
-            | Lt => FEmpty
-            | _ => FUnbounded x
+            match float_lt_dec a x with
+            | left _ => FUnbounded x
+            | right _ => FUnbounded a
             end
         end.
-
-    Lemma simpl_floatConstraintLeftSplit :
-        forall (a b x : float_std) (p : FloatOTF.compare a b = Lt),
-            FloatOTF.compare a x = Lt ->
-            FloatOTF.compare x b = Lt ->
-            exists q,
-                floatConstraintLeftSplit (float_lt x) (FBounded a b p) = FBounded a x q.
-    Proof.
-        intros a b x p q r; eexists.
-    Admitted.
-
-    Lemma simpl_floatConstraintRightSplit :
-        forall (a b x : float_std) (p : FloatOTF.compare a b = Lt),
-            FloatOTF.compare a x = Lt ->
-            FloatOTF.compare x b = Lt ->
-            exists q,
-                floatConstraintLeftSplit (float_lt x) (FBounded a b p) = FBounded x b q.
-    Proof.
-        intros a b x p q r; eexists.
-    Admitted.
 
     Program Definition senumConstraintLeftSplit {s : StringSet.t} (t : string_enum_test s) (c : senumConstraint s) : senumConstraint s :=
         let '(subset_mem _ filt) := t in
@@ -318,7 +302,7 @@ Section FeatureSpaceConstraint.
             floatConstraintWitness c = None -> floatConstraintEmpty c = true.
     Proof. intros c H; destruct c; now inversion H. Qed.
 
-    Lemma float_test_compare :
+    Lemma float_test_true :
         forall (x y : float_std), tests float_feature (float_lt y) x = true <-> FloatOTF.compare x y = Lt.
     Proof.
         intros x y; rewrite FloatOTFFacts.compare_lt_iff, FloatOTFFacts.lt_not_ge_iff;
@@ -327,41 +311,105 @@ Section FeatureSpaceConstraint.
         -   now apply Bool.eq_true_not_negb_iff.
     Qed.
 
+    Lemma float_test_false :
+        forall (x y : float_std), tests float_feature (float_lt y) x = false <-> FloatOTF.compare x y <> Lt.
+    Proof.
+        intros x y.
+        setoid_replace (tests float_feature (float_lt y) x = false)
+            with (tests float_feature (float_lt y) x <> true) using relation iff.
+        -   rewrite float_test_true; now split.
+        -   destruct (tests float_feature (float_lt y) x);
+            split; intros; auto; now exfalso.
+    Qed.
+
     Theorem floatConstraintSatSplitLeft :
         forall (c : floatConstraint) (t : float_test) (x : float_std),
             floatConstraintSat (floatConstraintLeftSplit t c) x <->
                 floatConstraintSat c x /\ tests float_feature t x = true.
     Proof.
-        intros c [y] x; rewrite float_test_compare;
+        intros c [y] x; rewrite float_test_true; simpl;
         destruct c as [| a | a b p | a ];
         [
-        | destruct (FloatOTF.compare a y) eqn:Hay
-        | destruct (FloatOTF.compare a y) eqn:Hay; destruct (FloatOTF.compare y b) eqn:Hyb
-        | destruct (FloatOTF.compare a y) eqn:Hay
-        ]; split;
-            try (intros abs; now inversion abs);
-            simpl; try (rewrite Hyb); try (rewrite Hay);
-            try (intros abs; now inversion abs);
-            try (intros (E & abs); rewrite <- E in abs; now rewrite abs in Hay).
-        -   intros H; inversion H; now subst a.
-        -   apply FloatOTFFacts.compare_lt_iff in p;
-            apply FloatOTFFacts.compare_eq_iff in Hay;
-            apply FloatOTFFacts.compare_eq_iff in Hyb;
-            exfalso; apply p; now transitivity (y).
-        -   destruct simpl_floatConstraintLeftSplit with a b y p; try assumption.
-        -   admit.
-        -   apply FloatOTFFacts.compare_lt_iff in p;
-            apply FloatOTFFacts.compare_eq_iff in Hay;
-            apply FloatOTFFacts.compare_gt_iff in Hyb;
-            exfalso; apply p; now transitivity (y).
-        -   
-    Admitted.
+        | destruct (float_lt_dec a y) as [e1|e1]
+        | destruct (float_lt_dec a y) as [e1|e1]; destruct (float_lt_dec y b) as [e2|e2]
+        | destruct (float_lt_dec a y) as [e1|e1]
+        ]; split; simpl;
+            try (assert (H1 : FloatOTF.lt a y) by (now rewrite FloatOTFFacts.compare_lt_iff in e1));
+            try (assert (H1 : ~ FloatOTF.lt a y) by (now rewrite FloatOTFFacts.compare_nlt_iff in e1));
+            try (assert (H2 : FloatOTF.lt y b) by (now rewrite FloatOTFFacts.compare_lt_iff in e2));
+            try (assert (H2 : ~ FloatOTF.lt y b) by (now rewrite FloatOTFFacts.compare_nlt_iff in e2));
+            try (now intros).
+        -   intros; now subst.
+        -   intros []; now subst.
+        -   intros []; split; try split; auto;
+                try (now transitivity y);
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros [[]]; split; auto;
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros []; split; try split; auto;
+            assert (FloatOTF.lt x y) by
+            (
+                apply FloatOTFFacts.OrderTac.lt_le_trans with (y := b); auto;
+                now rewrite FloatOTFFacts.compare_ge_iff in e2
+            );
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros [[]]; cut (FloatOTF.lt a y); try (now intros abs);
+            apply FloatOTFFacts.OrderTac.le_lt_trans with (y := x); auto;
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros [[]]; cut (FloatOTF.lt a y); try (now intros abs);
+            apply FloatOTFFacts.OrderTac.le_lt_trans with (y := x); auto;
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros []; split; auto;
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros []; split; auto;
+            now apply FloatOTFFacts.compare_lt_iff.
+        -   intros []; cut (FloatOTF.lt a y); try (now intros abs);
+            apply FloatOTFFacts.OrderTac.le_lt_trans with (y := x); auto;
+            now apply FloatOTFFacts.compare_lt_iff.
+    Qed.
 
     Theorem floatConstraintSatSplitRight :
         forall (c : floatConstraint) (t : float_test) (x : float_std),
             floatConstraintSat (floatConstraintRightSplit t c) x <->
                 floatConstraintSat c x /\ tests float_feature t x = false.
-    Admitted.
+    Proof.
+        intros c [y] x; rewrite float_test_false; simpl;
+        destruct c as [| a | a b p | a ];
+        [
+        | destruct (float_lt_dec a y) as [e1|e1]
+        | destruct (float_lt_dec a y) as [e1|e1]; destruct (float_lt_dec y b) as [e2|e2]
+        | destruct (float_lt_dec a y) as [e1|e1]
+        ]; split; simpl;
+            try (assert (H1 : FloatOTF.lt a y) by (now rewrite FloatOTFFacts.compare_lt_iff in e1));
+            try (assert (H1 : ~ FloatOTF.lt a y) by (now rewrite FloatOTFFacts.compare_nlt_iff in e1));
+            try (assert (H2 : FloatOTF.lt y b) by (now rewrite FloatOTFFacts.compare_lt_iff in e2));
+            try (assert (H2 : ~ FloatOTF.lt y b) by (now rewrite FloatOTFFacts.compare_nlt_iff in e2));
+            try (now intros).
+        -   intros []; now subst.
+        -   intros; now subst.
+        -   intros []; split; try split; auto;
+                try (transitivity y; try assumption; apply H1);
+            now apply FloatOTFFacts.compare_nlt_iff.
+        -   intros [[]]; split; auto;
+            apply FloatOTFFacts.compare_le_iff; intros abs; apply H3; unfold FloatOTF.compare;
+            now rewrite FloatOTFFacts.compare_antisym, abs.
+        -   intros [[]]; apply FloatOTFFacts.le_not_gt_iff in H2;
+            now apply H3, FloatOTFFacts.compare_lt_iff, FloatOTFFacts.OrderTac.lt_le_trans with (y := b).
+        -   intros []; split; try split; auto;
+            intros abs; apply H1, FloatOTFFacts.OrderTac.le_lt_trans with (y := x); try assumption;
+            now apply FloatOTFFacts.compare_lt_iff in abs.
+        -   intros []; split; try split; auto;
+            intros abs; apply H1, FloatOTFFacts.OrderTac.le_lt_trans with (y := x); try assumption;
+            now apply FloatOTFFacts.compare_lt_iff in abs.
+        -   intros; split;
+                try (apply FloatOTFFacts.OrderTac.lt_le_trans with (y := y); assumption);
+            intros abs; now apply FloatOTFFacts.compare_lt_iff in abs.
+        -   intros []; apply FloatOTFFacts.compare_le_iff; intros abs; apply H0; unfold FloatOTF.compare;
+            now rewrite FloatOTFFacts.compare_antisym, abs.
+        -   intros; split; auto;
+            intros abs; apply H1, FloatOTFFacts.OrderTac.le_lt_trans with (y := x); try assumption;
+            now apply FloatOTFFacts.compare_lt_iff.
+    Qed.
 
     Theorem floatConstraintInitFullSat :
         forall (x : float_std),

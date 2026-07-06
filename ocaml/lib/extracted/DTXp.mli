@@ -63,6 +63,8 @@ val boolConstraintLeftSplit : boolConstraint -> boolConstraint
 
 val boolConstraintRightSplit : boolConstraint -> boolConstraint
 
+val float_lt_dec : float_std -> float_std -> bool
+
 val floatConstraintLeftSplit :
   float_test -> floatConstraint -> floatConstraint
 
