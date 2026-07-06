@@ -43,16 +43,10 @@ End ClassifierInstance.
 
 Module Type ExplanationProblem := FeatureSig <+ Output <+ ClassifierOn <+ ClassifierInstance.
 
-(* This is expressed in such a way the extracted interface looks nice *)
 Module Type InputProblem <: ExplanationProblem.
     Include ExplanationProblem.
     Declare Module S : FinSet with Definition n := n.
 End InputProblem.
-
-(*Module MakeInputProblem (E : ExplanationProblem).
-    Include E.
-    Module S := MakeFinSet E.
-End MakeInputProblem.*)
 
 
 Module ExplanationsDefs (Import E : InputProblem).
