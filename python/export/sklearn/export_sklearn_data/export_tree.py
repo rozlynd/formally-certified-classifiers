@@ -8,7 +8,7 @@ from utils import flatten_str_list
 
 def export_tree(dt: tree.DecisionTreeClassifier)-> str:
     """
-    Export a `DecisionTree` from `sklearn` module to a string format.
+    Export a `DecisionTree` from `sklearn` module to `dttxt` tree format.
 
     The generated string has this format :
     - each line represents a vertex (that can be a leaf or a node)
