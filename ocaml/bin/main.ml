@@ -72,11 +72,12 @@ let main_file verbose mode input_file output_file =
 
   let oc = open_and_clear_file output_file in (* open the output file *)
 
+  log "info : parsing file...";
+  
   let module D = Driver_file.MakeData (struct
     let filename = input_file
   end) in
 
-  log "info : parsing file...";
   let module Input = MakeDTInputProblem (D) in
   log "done.\n\n";
 

@@ -1,7 +1,5 @@
-(* open Extracted *)
-open Dttxt
 
-open Parsing_utils
+open Dttxt.Parsing_utils
 open Extracted.DT
 open Extracted.Features
 open Extracted.Utils
@@ -21,26 +19,34 @@ let rec _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features)
     let next_feature, i, next_sig = _vector_and_features_from_parsing vq fq in
     begin
       match vt, ft with
-      | ParsedBoolVectorElement(b), ParsedBoolFeature ->
+      | ParsedBoolVectorElement(b), ParsedBoolFeature 
+      | ParsedBoolVectorElement(b), ParsedNamedBoolFeature(_) ->
         (Coq_featureVecCons(Coq_isBooleanFeature, 
                             Obj.repr b, i, next_sig, next_feature), 
         (i+1),
         Coq_featureSigCons (i, Coq_isBooleanFeature, next_sig))
-      | ParsedFloatVectorElement(f), ParsedFloatFeature ->
+      
+      | ParsedFloatVectorElement(f), ParsedFloatFeature 
+      | ParsedFloatVectorElement(f), ParsedNamedFloatFeature(_) ->
         (Coq_featureVecCons(Coq_isContinuousFeature, 
                             Obj.repr f, i, next_sig, next_feature), 
         (i+1),
         Coq_featureSigCons (i, Coq_isContinuousFeature, next_sig)) (* il y avait un 0 à la place de i *)
-      | ParsedEnumVectorElement(s), ParsedEnumFeature(_ss) -> 
+      
+      | ParsedEnumVectorElement(s), ParsedEnumFeature(_ss) 
+      | ParsedEnumVectorElement(s), ParsedNamedEnumFeature(_, _ss) -> 
         let ss = set_of_string_list _ss in
         (Coq_featureVecCons(Coq_isStringEnumFeature ss, 
                             Obj.repr s, i, next_sig, next_feature), 
         (i+1),
         Coq_featureSigCons (i, Coq_isStringEnumFeature ss, next_sig))
+      
       | _, _ -> 
         failwith "Error in vector_from_parsing (3) : the given vector does not respect features declaration"
     end
 ;;
+(* create the vector and the features list from parsed_vector and parsed_features *)
+(* tree_from_parsing : parsed_vector -> parsed_features -> featureVec * featureSig *)
 let vector_and_features_from_parsing parsed_vector parsed_features = 
   (* print_string "debug : begin vector_from_parsing..."; *)
   let v,_,fs = (_vector_and_features_from_parsing parsed_vector parsed_features) in 
@@ -48,8 +54,8 @@ let vector_and_features_from_parsing parsed_vector parsed_features =
   v, fs
 ;;
 
-(* create the tree from the parsed_element list *)
-(* tree_from_parsing : parsed_tree -> dt *)
+
+
 let rec _tree_from_parsing to_fin t = match t with
   | [] -> failwith "ERROR : incorrect tree description."
   | t::q -> 
@@ -68,6 +74,8 @@ let rec _tree_from_parsing to_fin t = match t with
         end
     end
 ;;
+(* create the tree from the parsed_tree_element list *)
+(* tree_from_parsing : parsed_tree -> dt *)
 let tree_from_parsing to_fin parsed_tree = 
   (* print_string "debug : begin tree_from_parsing..."; *)
   let r = fst (_tree_from_parsing to_fin parsed_tree) in

@@ -20,7 +20,7 @@ let alphanum = ['a'-'z' 'A'-'Z' '0'-'9']
 let string_ = alphanum* 
 
 rule token = parse
-  | [' ' '\t']   { token lexbuf }(* ignore whitespaces and tabs *)
+  | [' ' '\t']   { token lexbuf } (* ignore whitespaces and tabs *)
   | next_line+   { new_line lexbuf; token lexbuf }
   | "(*"         { comment lexbuf }
   | null_        { NullToken }
@@ -39,9 +39,10 @@ rule token = parse
   | "float"      { FloatFeatureToken }
   | true_        { TrueToken }
   | false_       { FalseToken }
-  | int_ as inum    { IntToken (int_of_string inum) }
-  | float_ as inum  { FloatToken (float_of_string inum) }
+  | int_ as inum             { IntToken (int_of_string inum) }
+  | float_ as inum           { FloatToken (float_of_string inum) }
   | '"' (string_ as s) '"'   { StringToken (s) }
+  
   (* | id as text   { IdentToken text } *)
   | eof       { EOF } 
   | _ { raise (Error ("Unexpected char: "^(Lexing.lexeme lexbuf)^" at "^(string_of_int (Lexing.lexeme_start

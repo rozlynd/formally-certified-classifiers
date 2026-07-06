@@ -5,8 +5,11 @@ type parsed_feature =
 | ParsedBoolFeature
 | ParsedFloatFeature
 | ParsedEnumFeature of string list
+| ParsedNamedBoolFeature of string
+| ParsedNamedFloatFeature of string
+| ParsedNamedEnumFeature of string * string list
 ;;
-(* Type d'une liste de features parsée dans la lecture d'un fichier formatté.*)
+(* Type d'une liste de features parsée dans la lecture d'un fichier dttxt.*)
 type parsed_features = parsed_feature list;;
 
 type parsed_value =
@@ -14,11 +17,19 @@ type parsed_value =
   | ParsedFloatValue of float
   | ParsedEnumValue of string list
 ;;
+type named_parsed_tree_element =
+  | ParsedLeaf_ of int                        (* class_number *)
+  | ParsedNode_ of int * parsed_value         (* indice_feature_index, threshold *)
+  | NamedParsedNode_ of string * parsed_value (* feature_name, threshold *)
+;;
+(* Type d'un arbre parsé à la lecture d'un fichier dttxt.*)
+type named_parsed_tree = named_parsed_tree_element list;;
+
 type parsed_tree_element =
   | ParsedLeaf of int (* class number *)
   | ParsedNode of int * parsed_value (* indice_feature, threshold *)
 ;;
-(* Type d'un arbre parsé à la lecture d'un fichier formatté.*)
+(* Type d'un arbre parsé à la lecture d'un fichier dttxt.*)
 type parsed_tree = parsed_tree_element list;;
 
 
@@ -27,13 +38,38 @@ type parsed_vector_element =
 | ParsedFloatVectorElement of float
 | ParsedEnumVectorElement of string
 ;;
-(* Type d'un vecteur parsé dans la lecture d'un fichier formatté.*)
+(* Type d'un vecteur parsé dans la lecture d'un fichier dttxt.*)
 type parsed_vector = parsed_vector_element list;;
 
 
 type parsed_file = parsed_features * parsed_tree * parsed_vector;;
 
+type temp_parsed_file = parsed_features * named_parsed_tree * parsed_vector;;
 
+
+let get_feature_index name parsed_features =
+  
+  let rec aux name parsed_features cpt = match parsed_features with
+    | [] -> failwith ("Error : found feature nammed `" ^ name ^ "` in tree but it is not defined in features declaration.")
+    | ParsedBoolFeature :: q
+    | ParsedFloatFeature :: q
+    | ParsedEnumFeature(_) :: q -> aux name q (cpt+1)
+    | ParsedNamedBoolFeature(s) :: q
+    | ParsedNamedFloatFeature(s) :: q
+    | ParsedNamedEnumFeature(s, _) :: q ->
+        if name = s then cpt
+        else aux name q (cpt+1)
+  
+  in aux name parsed_features 0
+;;
+
+
+let rec unname_tree dt parsed_features = match dt with
+  | [] -> []
+  | ParsedLeaf_(e) :: q -> ParsedLeaf(e) :: (unname_tree q parsed_features)
+  | ParsedNode_(i, v) :: q -> ParsedNode(i, v) :: (unname_tree q parsed_features)
+  | NamedParsedNode_(name, v) :: q -> ParsedNode(get_feature_index name parsed_features, v) :: (unname_tree q parsed_features)
+;;
 
 (* --------------- examples --------------- *)
 (* let v1 = [ParsedBoolVectorElement(true); ParsedFloatVectorElement(0.1)];;
@@ -64,6 +100,9 @@ let string_of_feature_element ve = match ve with
   | ParsedBoolFeature -> "bool"
   | ParsedFloatFeature -> "float"
   | ParsedEnumFeature(l) -> string_of_string_list l
+  | ParsedNamedBoolFeature(n) -> "\"" ^ n ^ "\" : bool"
+  | ParsedNamedFloatFeature(n) -> "\"" ^ n ^ "\" : float"
+  | ParsedNamedEnumFeature(n, l) -> "\"" ^ n ^ "\" : " ^ string_of_string_list l
 ;;
 let rec _string_of_features v = match v with
   | [ ] -> ""

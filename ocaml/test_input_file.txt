@@ -1,11 +1,11 @@
 
 
-F(float, bool, ["s1", "s2"])
+F("feature0" : float, "feature1" : bool, "feature2" : ["s1", "s2"])
 
 T(
-    N(0, 1.14),
+    N("feature0", 1.14),
      L(0),
-     N(1, ()),
+     N("feature1", ()),
       L(1),
       L(2)
 )

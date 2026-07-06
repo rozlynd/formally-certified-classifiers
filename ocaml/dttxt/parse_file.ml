@@ -19,7 +19,7 @@ let read_file filename =
   try
     let fs, t, v = Parser.main Lexer.token filebuf in 
     (* print_endline "done."; *)
-    fs, t, v
+    fs, unname_tree t fs, v
     (* print_tree t;
     print_vector v *)
   with

@@ -32,11 +32,12 @@ open Parsing_utils
 
 
 (* Type de l'attribut synthétisé des non-terminaux *)
-%type <Parsing_utils.parsed_tree> tree
+%type <Parsing_utils.parsed_features> featurelist
+%type <Parsing_utils.named_parsed_tree> tree
 %type <Parsing_utils.parsed_vector> vector
 
 (* Type et définition de l'axiome *)
-%start <Parsing_utils.parsed_file> main
+%start <Parsing_utils.temp_parsed_file> main
 
 %%
 (*
@@ -84,6 +85,9 @@ feature:
   | BoolFeatureToken  { ParsedBoolFeature }
   | FloatFeatureToken { ParsedFloatFeature }
   | LeftBracketToken s = stringlist RightBracketToken { ParsedEnumFeature s }
+  | name=StringToken ColonToken BoolFeatureToken  { ParsedNamedBoolFeature name }
+  | name=StringToken ColonToken FloatFeatureToken { ParsedNamedFloatFeature name }
+  | name=StringToken ColonToken LeftBracketToken ss = stringlist RightBracketToken { ParsedNamedEnumFeature (name, ss) }
 
 stringlist:
   | /* empty */        { [ ] }
@@ -102,8 +106,11 @@ nodes:
 node:
   | NodeToken LeftParenthesisToken 
       fi = IntToken ComaToken
-      ti = value RightParenthesisToken                            { ParsedNode (fi, ti) }
-  | LeafToken LeftParenthesisToken c = IntToken RightParenthesisToken { ParsedLeaf (c) }
+      ti = value RightParenthesisToken                                { ParsedNode_ (fi, ti) }
+  | NodeToken LeftParenthesisToken 
+      fi = StringToken ComaToken
+      ti = value RightParenthesisToken                                { NamedParsedNode_ (fi, ti) }
+  | LeafToken LeftParenthesisToken c = IntToken RightParenthesisToken { ParsedLeaf_ (c) }
 
 value:
   | NullToken       { ParsedNullValue }
