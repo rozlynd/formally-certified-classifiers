@@ -295,10 +295,29 @@ Module FloatOTFFacts.
     Include OrderedTypeFullFacts FloatOTF.
     Import FloatOTF.
 
-    (*Lemma le_inf : forall x, le x inf.*) (* unused *)
+    Lemma le_inf : forall x, le x inf.
+    Proof.
+        intros [x p]; unfold le;
+        simpl; rewrite leb_spec;
+        unfold SFleb; simpl;
+        destruct (Prim2SF x) eqn:Hx; auto; try (now destruct s);
+        unfold Prim2SF in Hx; rewrite p in Hx;
+        destruct (is_zero x); destruct (is_infinity x);
+        destruct (Z.frexp x); destruct (shr_fexp prec emax (Uint63.to_Z (normfr_mantissa f)) (BinInt.Z.sub z prec) loc_Exact);
+        destruct (shr_m s); inversion Hx.
+    Qed.
 
     Lemma le_neg_inf : forall x, le neg_inf x.
-    Admitted.
+    Proof.
+        intros [x p]; unfold le;
+        simpl; rewrite leb_spec;
+        unfold SFleb; simpl;
+        destruct (Prim2SF x) eqn:Hx; auto; try (now destruct s);
+        unfold Prim2SF in Hx; rewrite p in Hx;
+        destruct (is_zero x); destruct (is_infinity x);
+        destruct (Z.frexp x); destruct (shr_fexp prec emax (Uint63.to_Z (normfr_mantissa f)) (BinInt.Z.sub z prec) loc_Exact);
+        destruct (shr_m s); inversion Hx.
+    Qed.
 
 End FloatOTFFacts.
 
