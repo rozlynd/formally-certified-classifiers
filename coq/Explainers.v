@@ -262,16 +262,62 @@ Module Type Enumerator <: EnumeratorBase.
 End Enumerator.
 
 
-Module DummyExplainer (Import E_ : InputProblem) : EnumeratorBase with Module E := E_.
-    Module Import Xp := EnumeratorsDefs E_.
+Module Type IteratorBaseOn (S : FinSet).
+
+    Parameter s : Type.
+
+    Parameter init : s.
+
+    Parameter pick : s -> option S.t.
+
+    Parameter block_up : S.t -> s -> s.
+
+    Parameter block_down : S.t -> s -> s.
+
+End IteratorBaseOn.
+
+Module Type IteratorOn (S : FinSet).
+    Include IteratorBaseOn S.
+End IteratorOn.
+
+Module Type IteratorBase.
+    Declare Module S : FinSet.
+    Include IteratorBaseOn S.
+End IteratorBase.
+
+Module Type Iterator <: IteratorBase.
+    Declare Module S : FinSet.
+    Include IteratorOn S.
+End Iterator.
+
+
+Module MakeEnumerator   (Import E_ : InputProblem)
+                        (It : Iterator with Module S := E_.S)
+                        (Chk : WCXpChecker with Module E := E_)
+                        (Shrink : CXpFinder with Module E := E_)
+                        (Grow : AXpFinder with Module E := E_)
+                    : EnumeratorBase    with Module E := E_.
 
     Module E := E_.
+    Module Import Xp := EnumeratorsDefs E.
 
-    Definition s := unit.
+    Definition s := It.s.
+    Definition init := It.init.
 
-    Definition init := tt.
-    Definition record (_ : Xp) := @id s.
+    Definition record (X : Xp) (st : s) :=
+        match X with
+        | isAXp X => It.block_up X st
+        | isCXp X => It.block_down X st
+        end.
 
-    Definition get (_ : s) := Some (isAXp E.S.all).
+    Definition get (st : s) :=
+        match It.pick st with
+        | None => None
+        | Some X =>
+            match Chk.checkWCXp X with
+            | true => Some (isCXp (Shrink.findCXp X))
+            | false => Some (isAXp (Grow.findAXp (S.compl X)))
+            end
+        end.
 
-End DummyExplainer.
+End MakeEnumerator.

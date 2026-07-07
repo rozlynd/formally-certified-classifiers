@@ -135,6 +135,26 @@ module type EnumeratorBase =
   val get : s -> Xp.coq_Xp option
  end
 
-module DummyExplainer :
+module type Iterator =
+ sig
+  module S :
+   FinSet
+
+  type s
+
+  val init : s
+
+  val pick : s -> S.t option
+
+  val block_up : S.t -> s -> s
+
+  val block_down : S.t -> s -> s
+ end
+
+module MakeEnumerator :
  functor (E_:InputProblem) ->
+ functor (It:Iterator with module S = E_.S) ->
+ functor (Chk:WCXpChecker with module E = E_) ->
+ functor (Shrink:CXpFinder with module E = E_) ->
+ functor (Grow:AXpFinder with module E = E_) ->
  EnumeratorBase with module E = E_

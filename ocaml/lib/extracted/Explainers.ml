@@ -214,27 +214,54 @@ module type EnumeratorBase =
   val get : s -> Xp.coq_Xp option
  end
 
-module DummyExplainer =
- functor (E_:InputProblem) ->
- struct
-  module Xp = EnumeratorsDefs(E_)
+module type Iterator =
+ sig
+  module S :
+   FinSet
 
+  type s
+
+  val init : s
+
+  val pick : s -> S.t option
+
+  val block_up : S.t -> s -> s
+
+  val block_down : S.t -> s -> s
+ end
+
+module MakeEnumerator =
+ functor (E_:InputProblem) ->
+ functor (It:Iterator with module S = E_.S) ->
+ functor (Chk:WCXpChecker with module E = E_) ->
+ functor (Shrink:CXpFinder with module E = E_) ->
+ functor (Grow:AXpFinder with module E = E_) ->
+ struct
   module E = E_
 
-  type s = unit
+  module Xp = EnumeratorsDefs(E)
 
-  (** val init : unit **)
+  type s = It.s
+
+  (** val init : It.s **)
 
   let init =
-    ()
+    It.init
 
-  (** val record : Xp.coq_Xp -> s -> s **)
+  (** val record : Xp.coq_Xp -> s -> It.s **)
 
-  let record _ =
-    Obj.magic id
+  let record x st =
+    match x with
+    | Xp.Coq_isAXp x0 -> It.block_up x0 st
+    | Xp.Coq_isCXp x0 -> It.block_down x0 st
 
   (** val get : s -> Xp.coq_Xp option **)
 
-  let get _ =
-    Some (Xp.Coq_isAXp E.S.all)
+  let get st =
+    match It.pick st with
+    | Some x ->
+      if Chk.checkWCXp x
+      then Some (Xp.Coq_isCXp (Shrink.findCXp x))
+      else Some (Xp.Coq_isAXp (Grow.findAXp (E_.S.compl x)))
+    | None -> None
  end
