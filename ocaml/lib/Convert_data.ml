@@ -31,7 +31,7 @@ let rec _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features)
         (Coq_featureVecCons(Coq_isContinuousFeature, 
                             Obj.repr f, i, next_sig, next_feature), 
         (i+1),
-        Coq_featureSigCons (i, Coq_isContinuousFeature, next_sig)) (* il y avait un 0 à la place de i *)
+        Coq_featureSigCons (i, Coq_isContinuousFeature, next_sig))
       
       | ParsedEnumVectorElement(s), ParsedEnumFeature(_ss) 
       | ParsedEnumVectorElement(s), ParsedNamedEnumFeature(_, _ss) -> 
@@ -46,11 +46,9 @@ let rec _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features)
     end
 ;;
 (* create the vector and the features list from parsed_vector and parsed_features *)
-(* tree_from_parsing : parsed_vector -> parsed_features -> featureVec * featureSig *)
+(* vector_and_features_from_parsing : parsed_vector -> parsed_features -> featureVec * featureSig *)
 let vector_and_features_from_parsing parsed_vector parsed_features = 
-  (* print_string "debug : begin vector_from_parsing..."; *)
   let v,_,fs = (_vector_and_features_from_parsing parsed_vector parsed_features) in 
-  (* print_endline "done.";  *)
   v, fs
 ;;
 

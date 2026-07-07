@@ -8,10 +8,7 @@ let report_error filename lexbuf msg =
   Printf.eprintf "File \"%s\", line %d, characters %d-%d: %s\n" filename b.pos_lnum fc lc msg
 
 
-(* main : string -> valueType *)
-(* Analyse le contenu d'un fichier passé en paramètre *)
-(* Dans le cas où l'analyse syntaxique s'est bien passée, *)
-(* draw the DT *)
+
 let read_file filename =
   (* print_string "debug : parsing file..."; *)
   let input = open_in filename in
@@ -19,7 +16,13 @@ let read_file filename =
   try
     let fs, t, v = Parser.main Lexer.token filebuf in 
     (* print_endline "done."; *)
-    fs, unname_tree t fs, v
+    let dt = unname_tree t fs in
+    print_tree dt;
+    print_features fs;
+    match (type_error dt fs) with
+    | None -> fs, dt, v
+    | Some i -> failwith ("Error : type mismatch between tree (node " ^ (string_of_int i) ^ ") and features declaration.")
+    
     (* print_tree t;
     print_vector v *)
   with

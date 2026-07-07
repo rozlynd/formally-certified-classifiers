@@ -5,7 +5,7 @@ F("feature0" : float, "feature1" : bool, "feature2" : ["s1", "s2"])
 T(
     N("feature0", 1.14),
      L(0),
-     N("feature1", ()),
+     N("feature0", ["s1"]),
       L(1),
       L(2)
 )
@@ -13,3 +13,6 @@ T(
 V(30.0, true, "s1")
 
 
+(*
+
+*)
