@@ -9,7 +9,13 @@ let set_of_string_list l =
   List.fold_right StringSet.add l StringSet.empty
 ;;
 
-let rec _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features) = match v, fs with
+
+(* Create the vector and the features list from parsed_vector and parsed_features. *)
+(* vector_and_features_from_parsing : parsed_vector -> parsed_features -> featureVec * featureSig *)
+let rec vector_and_features_from_parsing parsed_vector parsed_features = 
+  let v,_,fs = (_vector_and_features_from_parsing parsed_vector parsed_features) in 
+  v, fs
+and _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features) = match v, fs with
   | [], [] -> Coq_featureVecNil, 0, Coq_featureSigNil
   | [], _ -> 
     failwith "Error in vector_from_parsing (1) : the given vector does not respect features declaration"
@@ -45,16 +51,13 @@ let rec _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features)
         failwith "Error in vector_from_parsing (3) : the given vector does not respect features declaration"
     end
 ;;
-(* create the vector and the features list from parsed_vector and parsed_features *)
-(* vector_and_features_from_parsing : parsed_vector -> parsed_features -> featureVec * featureSig *)
-let vector_and_features_from_parsing parsed_vector parsed_features = 
-  let v,_,fs = (_vector_and_features_from_parsing parsed_vector parsed_features) in 
-  v, fs
-;;
 
 
-
-let rec _tree_from_parsing to_fin t = match t with
+(* Create the tree from the parsed_tree_element list. *)
+(* tree_from_parsing : parsed_tree -> dt *)
+let rec tree_from_parsing to_fin parsed_tree = 
+  fst (_tree_from_parsing to_fin parsed_tree)
+and _tree_from_parsing to_fin t = match t with
   | [] -> failwith "ERROR : incorrect tree description."
   | t::q -> 
     begin
@@ -72,14 +75,7 @@ let rec _tree_from_parsing to_fin t = match t with
         end
     end
 ;;
-(* create the tree from the parsed_tree_element list *)
-(* tree_from_parsing : parsed_tree -> dt *)
-let tree_from_parsing to_fin parsed_tree = 
-  (* print_string "debug : begin tree_from_parsing..."; *)
-  let r = fst (_tree_from_parsing to_fin parsed_tree) in
-  (* print_endline "done."; *)
-  r
-;;
+
 
 
 

@@ -79,7 +79,8 @@ let rec unname_tree dt parsed_features = match dt with
 
 
 
-(* Get the feature at a given index in parsed_features. If index out of bounds, raise Failure. *)
+(* Get the feature at a given index in parsed_features. 
+If index out of bounds, raise Failure. *)
 let get_feature_at_index index parsed_features =
   
   let rec aux index parsed_features cpt = match parsed_features with
@@ -92,8 +93,7 @@ let get_feature_at_index index parsed_features =
 (* Test if every element of l1 is in l2. *)
 let is_subset l1 l2 = List.fold_right (fun t acc -> (List.mem t l2) && acc) l1 true;;
 
-(* Check the types of dt given parsed_feaetures.
-return 
+(* Check the types of dt given parsed_feaetures. Return
 - None if no type error detected
 - Some i with i the index of the first element of dt where error founded *)
 let type_error dt parsed_features =

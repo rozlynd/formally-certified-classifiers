@@ -1,17 +1,12 @@
-open Dttxt
+open Dttxt.Parse_file
+open Dttxt.Parsing_utils
 
-open Parse_file
-open Parsing_utils
-
-
-open Extracted
-
-open Utils
-open Features
-open Xp
-open Explainers
-open DT
-open DTXp
+open Extracted.Utils
+open Extracted.Features
+open Extracted.Xp
+open Extracted.Explainers
+open Extracted.DT
+open Extracted.DTXp
 
 open Convert_data
 
@@ -21,27 +16,6 @@ open Convert_data
 let set_of_string_list l =
   List.fold_right StringSet.add l StringSet.empty
 
-let s = set_of_string_list [ "s1" ; "s2" ; "s3" ]
-
-(* module F : FeatureSig = struct
-
-  let n = 3
-
-  let fs =
-    Coq_featureSigCons (2, float_feature, Coq_isContinuousFeature,
-    Coq_featureSigCons (1, boolean_feature, Coq_isBooleanFeature,
-    Coq_featureSigCons (0, string_enum_feature s, Coq_isStringEnumFeature s,
-    Coq_featureSigNil)))
-
-end *)
-
-(* module O : Output with module K = StringOT = struct
-
-  module K = StringOT
-
-end *)
-
-(* module Dt = MakeDT (F) (O) *)
 
 module type Data = sig
   val nb_features : int
@@ -55,7 +29,7 @@ module type FileNameModule = sig
 end
 
 module MakeData = functor (F:FileNameModule) -> struct
-  let fs, t, v = Parse_file.read_file F.filename
+  let fs, t, v = Dttxt.Parse_file.read_file F.filename
   let nb_features = List.length fs
   let features = fs
   let parsed_tree = t
@@ -94,9 +68,6 @@ module MakeDTInputProblem (Data:Data) : DTInputProblem with module K = StringOT 
   let to_fin = to_fin' n
 
   let k = tree_from_parsing to_fin Data.parsed_tree
-  (* let _ = print_string "debug : affichage de l'arbre..."
-  let _  = Printing_things.print_tree k fs
-  let _ = print_endline "done." *)
 
   let v = v_
 

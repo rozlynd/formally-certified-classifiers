@@ -10,15 +10,11 @@ let report_error filename lexbuf msg =
 
 
 let read_file filename =
-  (* print_string "debug : parsing file..."; *)
   let input = open_in filename in
   let filebuf = Lexing.from_channel input in
   try
     let fs, t, v = Parser.main Lexer.token filebuf in 
-    (* print_endline "done."; *)
     let dt = unname_tree t fs in
-    print_tree dt;
-    print_features fs;
     match (type_error dt fs) with
     | None -> fs, dt, v
     | Some i -> failwith ("Error : type mismatch between tree (node " ^ (string_of_int i) ^ ") and features declaration.")
