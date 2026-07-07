@@ -3,17 +3,29 @@ open Driver_file
 open Extracted
 open DTXp
 open Utils
+open Dttxt.Parsing_utils
 
 
-
-let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
+(* let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
   let l = S.elements e in
   List.map (fun f -> Extracted.Utils.to_nat S.n f + 1) l
+;; *)
+let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
+  let l = S.elements e in
+  List.map (fun f -> Extracted.Utils.to_nat S.n f) l
 ;;
 
-
-
-
+let string_of_features_with_names l parsed_features = 
+  let rec aux acc l =
+    match l with
+    | [] -> acc ^ " ]"
+    | x :: l -> aux (acc ^ ", " ^ (get_feature_name_at_index x parsed_features)) l
+  in
+  match l with
+  | [] -> "[]"
+  | x :: q -> aux ("[ " ^ (get_feature_name_at_index x parsed_features)) q
+;;
+(* 
 let string_of_int_list l =
   let rec aux acc l =
     match l with
@@ -23,7 +35,8 @@ let string_of_int_list l =
   match l with
   | [] -> "[]"
   | x :: l -> aux ("[ " ^ string_of_int x) l
-;;
+;; *)
+
 
 let help_string = 
   "The program must be called like this :
@@ -88,7 +101,8 @@ let main_file verbose mode input_file output_file =
     begin
       let module FindA = DtAXpFinder (Input) in
       let axp = FindA.findAXp Input.S.all in
-      let outA = string_of_int_list (as_list (module Input.S) axp) in
+      (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
+      let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
       print_endline ("AXp : " ^ outA);
       write_in_file oc ("AXp : " ^ outA);
     end;
@@ -97,7 +111,8 @@ let main_file verbose mode input_file output_file =
     begin
       let module FindC = DtCXpFinder (Input) in
       let cxp = FindC.findCXp Input.S.all in
-      let outC = string_of_int_list (as_list (module Input.S) cxp) in
+      (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
+      let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
       print_endline ("CXp : " ^ outC);
       write_in_file oc ("CXp : " ^ outC);
     end;

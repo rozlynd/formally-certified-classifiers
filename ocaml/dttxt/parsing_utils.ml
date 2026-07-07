@@ -81,6 +81,23 @@ let rec unname_tree dt parsed_features = match dt with
 
 
 
+(* Get the feature name at a given index in parsed_features.
+Return index as a string if it is not a named feature.
+If index out of bounds, raise Failure. *)
+let get_feature_name_at_index index parsed_features =
+  
+  let rec aux index parsed_features cpt = match parsed_features with
+    | [] -> failwith ("Error : feature index " ^ (string_of_int index) ^ " out of bounds.")
+    | (_, t) :: q -> 
+      if cpt = index then 
+        match t with
+        | None -> string_of_int index
+        | Some s -> s
+      else aux index q (cpt+1)
+  
+  in aux index parsed_features 0
+;;
+
 (* Get the feature at a given index in parsed_features. 
 If index out of bounds, raise Failure. *)
 let get_feature_at_index index parsed_features =
