@@ -193,13 +193,48 @@ module CXpIterativeFinder =
     __
  end
 
+module type EnumeratorBase =
+ sig
+  module E :
+   InputProblem
+
+  module Xp :
+   sig
+    type coq_Xp =
+    | Coq_isAXp of E.S.t
+    | Coq_isCXp of E.S.t
+   end
+
+  type s
+
+  val init : s
+
+  val record : Xp.coq_Xp -> s -> s
+
+  val get : s -> Xp.coq_Xp option
+ end
+
 module DummyExplainer =
- functor (E:InputProblem) ->
+ functor (E_:InputProblem) ->
  struct
-  module Xp = EnumeratorsDefs(E)
+  module Xp = EnumeratorsDefs(E_)
 
-  (** val getNew : Xp.coq_Xp list -> Xp.coq_Xp option **)
+  module E = E_
 
-  let getNew _ =
+  type s = unit
+
+  (** val init : unit **)
+
+  let init =
+    ()
+
+  (** val record : Xp.coq_Xp -> s -> s **)
+
+  let record _ =
+    Obj.magic id
+
+  (** val get : s -> Xp.coq_Xp option **)
+
+  let get _ =
     Some (Xp.Coq_isAXp E.S.all)
  end

@@ -221,30 +221,57 @@ Module CXpIterativeFinder (E_ : InputProblem) (Chk : WCXpChecker with Module E :
 End CXpIterativeFinder.
 
 
-(* Enumerate all explanations *)
+(* Enumerate explanations *)
 
-Module Type EnumeratorBase (Import E : InputProblem).
+Module Type EnumeratorBaseOn (Import E : InputProblem).
     Module Import Xp := EnumeratorsDefs E.
 
-    Parameter getNew : list Xp -> option Xp.
+    Parameter s : Type.
 
+    Parameter init : s.
+    Parameter record : Xp -> s -> s.
+
+    Parameter get : s -> option Xp.
+
+End EnumeratorBaseOn.
+
+Module Type EnumeratorOn (Import E : InputProblem) <: EnumeratorBaseOn E.
+    Include EnumeratorBaseOn E.
+    Import Xp.
+
+    Inductive IN (X : Xp) : s -> Prop :=
+    | IN_last (st : s) : IN X (record X st)
+    | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
+
+    Axiom getSound :
+        forall s X, get s = Some X -> Xp.isXp X /\ ~ IN X s.
+
+    Axiom getComplete :
+        forall s X, get s = None -> Xp.isXp X -> IN X s.
+
+End EnumeratorOn.
+
+Module Type EnumeratorBase.
+    Declare Module E : InputProblem.
+    Include EnumeratorBaseOn E.
 End EnumeratorBase.
 
-Module Type Enumerator (Import E : InputProblem) <: EnumeratorBase E.
-    Include EnumeratorBase E.
-
-    Axiom getNewSound :
-        forall Xs X, getNew Xs = Some X -> Xp.isXp X.
-
-    Axiom getNewComplete :
-        forall Xs X, getNew Xs = None -> Xp.isXp X -> List.In X Xs.
-            
+Module Type Enumerator <: EnumeratorBase.
+    Declare Module E : InputProblem.
+    Include EnumeratorOn E.
 End Enumerator.
 
 
-Module DummyExplainer (Import E : InputProblem) : EnumeratorBase E.
-    Module Import Xp := EnumeratorsDefs E.
+Module DummyExplainer (Import E_ : InputProblem) : EnumeratorBase with Module E := E_.
+    Module Import Xp := EnumeratorsDefs E_.
 
-    Definition getNew (l : list Xp) := Some (isAXp E.S.all).
+    Module E := E_.
+
+    Definition s := unit.
+
+    Definition init := tt.
+    Definition record (_ : Xp) := @id s.
+
+    Definition get (_ : s) := Some (isAXp E.S.all).
 
 End DummyExplainer.

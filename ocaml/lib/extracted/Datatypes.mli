@@ -1,4 +1,6 @@
 
+type __ = Obj.t
+
 val negb : bool -> bool
 
 val fst : ('a1 * 'a2) -> 'a1
@@ -22,3 +24,5 @@ val coq_CompareSpec2Type : comparison -> coq_CompareSpecT
 type 'a coq_CompSpecT = coq_CompareSpecT
 
 val coq_CompSpec2Type : 'a1 -> 'a1 -> comparison -> 'a1 coq_CompSpecT
+
+val id : __ -> __

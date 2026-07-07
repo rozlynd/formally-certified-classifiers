@@ -114,9 +114,11 @@ module CXpIterativeFinder :
  functor (Chk:WCXpChecker with module E = E_) ->
  CXpFinder with module E = E_
 
-module DummyExplainer :
- functor (E:InputProblem) ->
+module type EnumeratorBase =
  sig
+  module E :
+   InputProblem
+
   module Xp :
    sig
     type coq_Xp =
@@ -124,5 +126,15 @@ module DummyExplainer :
     | Coq_isCXp of E.S.t
    end
 
-  val getNew : Xp.coq_Xp list -> Xp.coq_Xp option
+  type s
+
+  val init : s
+
+  val record : Xp.coq_Xp -> s -> s
+
+  val get : s -> Xp.coq_Xp option
  end
+
+module DummyExplainer :
+ functor (E_:InputProblem) ->
+ EnumeratorBase with module E = E_
