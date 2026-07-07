@@ -82,12 +82,12 @@ features:
   | f = feature ComaToken fs = features    { f::fs }
 
 feature:
-  | BoolFeatureToken  { ParsedBoolFeature }
-  | FloatFeatureToken { ParsedFloatFeature }
-  | LeftBracketToken s = stringlist RightBracketToken { ParsedEnumFeature s }
-  | name=StringToken ColonToken BoolFeatureToken  { ParsedNamedBoolFeature name }
-  | name=StringToken ColonToken FloatFeatureToken { ParsedNamedFloatFeature name }
-  | name=StringToken ColonToken LeftBracketToken ss = stringlist RightBracketToken { ParsedNamedEnumFeature (name, ss) }
+  | BoolFeatureToken                                  { ParsedBoolFeature, None }
+  | FloatFeatureToken                                 { ParsedFloatFeature, None }
+  | LeftBracketToken s = stringlist RightBracketToken { ParsedEnumFeature s, None }
+  | name=StringToken ColonToken BoolFeatureToken      { ParsedBoolFeature, Some name }
+  | name=StringToken ColonToken FloatFeatureToken     { ParsedFloatFeature, Some name }
+  | name=StringToken ColonToken LeftBracketToken ss = stringlist RightBracketToken { ParsedEnumFeature ss, Some name }
 
 stringlist:
   | /* empty */        { [ ] }

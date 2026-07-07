@@ -25,22 +25,19 @@ and _vector_and_features_from_parsing (v:parsed_vector) (fs:parsed_features) = m
     let next_feature, i, next_sig = _vector_and_features_from_parsing vq fq in
     begin
       match vt, ft with
-      | ParsedBoolVectorElement(b), ParsedBoolFeature 
-      | ParsedBoolVectorElement(b), ParsedNamedBoolFeature(_) ->
+      | ParsedBoolVectorElement(b), (ParsedBoolFeature, _) ->
         (Coq_featureVecCons(Coq_isBooleanFeature, 
                             Obj.repr b, i, next_sig, next_feature), 
         (i+1),
         Coq_featureSigCons (i, Coq_isBooleanFeature, next_sig))
       
-      | ParsedFloatVectorElement(f), ParsedFloatFeature 
-      | ParsedFloatVectorElement(f), ParsedNamedFloatFeature(_) ->
+      | ParsedFloatVectorElement(f), (ParsedFloatFeature, _) ->
         (Coq_featureVecCons(Coq_isContinuousFeature, 
                             Obj.repr f, i, next_sig, next_feature), 
         (i+1),
         Coq_featureSigCons (i, Coq_isContinuousFeature, next_sig))
       
-      | ParsedEnumVectorElement(s), ParsedEnumFeature(_ss) 
-      | ParsedEnumVectorElement(s), ParsedNamedEnumFeature(_, _ss) -> 
+      | ParsedEnumVectorElement(s), (ParsedEnumFeature(_ss), _) -> 
         let ss = set_of_string_list _ss in
         (Coq_featureVecCons(Coq_isStringEnumFeature ss, 
                             Obj.repr s, i, next_sig, next_feature), 

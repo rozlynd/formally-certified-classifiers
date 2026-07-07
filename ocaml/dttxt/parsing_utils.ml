@@ -3,14 +3,20 @@
 
 
 (* Features list type obtained after reading dttxt file. *)
-type parsed_features = parsed_feature list
-and parsed_feature =
+(* type _parsed_features = _parsed_feature list
+and _parsed_feature =
 | ParsedBoolFeature
 | ParsedFloatFeature
 | ParsedEnumFeature of string list
 | ParsedNamedBoolFeature of string
 | ParsedNamedFloatFeature of string
 | ParsedNamedEnumFeature of string * string list
+;; *)
+type parsed_features = (parsed_feature * string option) list
+and parsed_feature =
+| ParsedBoolFeature
+| ParsedFloatFeature
+| ParsedEnumFeature of string list
 ;;
 
 
@@ -55,16 +61,12 @@ type parsed_file = parsed_features * parsed_tree * parsed_vector;;
 (* Get the index of a features given its name. If the name is not found, raise Failure. *)
 let get_feature_index name parsed_features =
   
-  let rec aux name parsed_features cpt = match parsed_features with
+  let rec aux name parsed_features acc = match parsed_features with
     | [] -> failwith ("Error : found feature nammed `" ^ name ^ "` in tree but it is not defined in features declaration.")
-    | ParsedBoolFeature :: q
-    | ParsedFloatFeature :: q
-    | ParsedEnumFeature(_) :: q -> aux name q (cpt+1)
-    | ParsedNamedBoolFeature(s) :: q
-    | ParsedNamedFloatFeature(s) :: q
-    | ParsedNamedEnumFeature(s, _) :: q ->
-        if name = s then cpt
-        else aux name q (cpt+1)
+    | (t, None) :: q -> aux name q (acc+1)
+    | (t, Some s) :: q ->
+        if name = s then acc
+        else aux name q (acc+1)
   
   in aux name parsed_features 0
 ;;
@@ -103,12 +105,9 @@ let type_error dt parsed_features =
     | ParsedNode(i, v) :: q -> 
         let f = (get_feature_at_index i parsed_features) in
         match f, v with
-        | ParsedBoolFeature, ParsedNullValue
-        | ParsedNamedBoolFeature(_), ParsedNullValue
-        | ParsedFloatFeature, ParsedFloatValue(_)
-        | ParsedNamedFloatFeature(_), ParsedFloatValue(_) -> aux q parsed_features (cpt+1)
-        | ParsedEnumFeature(ss1), ParsedEnumValue(ss2)
-        | ParsedNamedEnumFeature(_, ss1), ParsedEnumValue(ss2) -> 
+        | (ParsedBoolFeature, _), ParsedNullValue
+        | (ParsedFloatFeature, _), ParsedFloatValue(_) -> aux q parsed_features (cpt+1)
+        | (ParsedEnumFeature(ss1), _), ParsedEnumValue(ss2) -> 
             if not (is_subset ss2 ss1) then Some( cpt )
             else aux q parsed_features (cpt+1)
         | _ -> Some( cpt )
@@ -165,13 +164,15 @@ let rec _string_of_string_list (l : string list) : string = match l with
   | t::q -> "\"" ^ t ^ "\"" ^ ", " ^ (_string_of_string_list q)
 ;;
 let string_of_string_list l = "[" ^ (_string_of_string_list l) ^ "]" ;;
-let string_of_feature_element ve = match ve with
+let string_of_feature_element ve = 
+  let f, name_opt = ve in
+  match name_opt with
+  | None -> ""
+  | Some s -> "\"" ^ s ^ "\" : "
+  ^ match f with
   | ParsedBoolFeature -> "bool"
   | ParsedFloatFeature -> "float"
   | ParsedEnumFeature(l) -> string_of_string_list l
-  | ParsedNamedBoolFeature(n) -> "\"" ^ n ^ "\" : bool"
-  | ParsedNamedFloatFeature(n) -> "\"" ^ n ^ "\" : float"
-  | ParsedNamedEnumFeature(n, l) -> "\"" ^ n ^ "\" : " ^ string_of_string_list l
 ;;
 let rec _string_of_features v = match v with
   | [ ] -> ""
