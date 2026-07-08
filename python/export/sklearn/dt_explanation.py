@@ -11,7 +11,8 @@ from parse_answer import read_answer_file, read_answer
 def logger(text: str, verbose: bool = True):
     if verbose: print(text)
 
-def explain(dt: tree.DecisionTreeClassifier, v: list, data_filename: str ="data.txt", answer_filename = "ocaml_answer.txt", verbose: bool = False):
+def explain(dt: tree.DecisionTreeClassifier, v: list, 
+            feature_names=[], data_filename: str ="data.txt", answer_filename = "ocaml_answer.txt", verbose: bool = False):
     """
     Explain a decision by calling OCaml program.\n
     Return a `ResultObj` containing the explanation(s) of the classification of `v` by the decision tree `dt`.
@@ -39,11 +40,12 @@ def explain(dt: tree.DecisionTreeClassifier, v: list, data_filename: str ="data.
 
     ## write features, tree and vector in a file nammed `data_filename`
     log("begin export...")
-    text_features = export_features(v)
+    text_features = export_features(v, feature_names)
     text_tree = export_tree(dt)
     text_vector = export_vector(v)
     text = text_features + "\n\n" + text_tree + "\n\n" + text_vector + "\n\n"
     write_str_in_file(data_filename, text)
+    print(text)
     log("end export.\n")
 
 
@@ -55,7 +57,7 @@ def explain(dt: tree.DecisionTreeClassifier, v: list, data_filename: str ="data.
     command = f"""./{verification_prog_path}/main.exe -ac {data_filename} {answer_filename}"""
 
     ## run the command line in a shell, and capture the output
-    res = subprocess.run(command, check=True, capture_output=False, shell=True, executable="/bin/bash")
+    res = subprocess.run(command, check=True, capture_output=True, shell=True, executable="/bin/bash")
     log("end running ocaml explanation.")
     
     # err_str = str(res.stderr, "utf-8") # translate bytes into string

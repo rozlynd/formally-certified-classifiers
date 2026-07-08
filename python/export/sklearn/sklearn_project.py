@@ -21,7 +21,7 @@ def main():
     ## create vector
     v = X[0]
 
-    res_obj = explain(dt, v, data_filename=filename_, verbose=True)
+    res_obj = explain(dt, v, feature_names=iris['feature_names'], data_filename=filename_, verbose=True)
     print(res_obj)
 
 

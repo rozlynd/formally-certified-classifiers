@@ -1,5 +1,5 @@
 
-def export_features(v: list)-> str:
+def export_features(v: list, feature_names = None)-> str:
     """
     Export, to a string format, features from a vector by looking at the length of the vector.
 
@@ -11,12 +11,24 @@ def export_features(v: list)-> str:
     https://scikit-learn.org/stable/modules/preprocessing.html#encoding-categorical-features
     """
 
+    are_features_nammed = feature_names != None or feature_names != []
+
+    def get_feature_name(i):
+        """Format the potential feature name.
+        If name is defined, return name + " : ".
+        Else, return "".
+        """
+        if are_features_nammed and feature_names[i] != "":
+            return '"' + feature_names[i] + '" : '
+        else: return ""
+
     r = "F("
 
     ## check that each element has type `float` (and construct the returned string)
-    for e in v:
+    for i, e in enumerate(v):
+        e_str = get_feature_name(i)
         if isinstance(e, float):
-            e_str = "float"
+            e_str += "float"
         else:
             raise TypeError("Error in export_features : features must be of type float.")
         r += e_str + ", "
