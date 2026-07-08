@@ -26,8 +26,11 @@ E -> FeatureList Tree Vector
 
 FeatureList -> F( Features )
 Features -> Feature, Features
+Features -> NamedFeature, Features
 Features -> Feature
-FeatureList -> *empty*
+Features -> NamedFeature
+Features -> *empty*
+NamedFeature -> StringToken : Feature
 Feature -> bool
 Feature -> float
 Feature -> [ StringList ]
@@ -54,7 +57,7 @@ VectorElement -> FloatToken
 VectorElement -> StringToken
 ```
 
-You also can add comments in OCaml format in dttxt files, that is : `(* comment *)`
+You also can add comments following OCaml format in dttxt files, that is : `(* comment *)`
 
 _**NB :** comments, tabulations, spaces and new lines are ignored._
 
@@ -73,6 +76,11 @@ Here is the feature declaration :
 ```
 F(float, float, bool, ["red", "blue", "green"])
 ```
+Features can also be named :
+```
+F("width" : float, "height" : float, "is_filled" : bool, "color" : ["red", "blue", "green"])
+```
+_**NB :** You don't have to name every features if you name one._
 
 #### Vector declaration
 Let `v = [9., 1., true, "red"]` be a vector of that dataset.
@@ -142,7 +150,7 @@ T(
 V(9., 1., true, "red")
 ```
 
-_**NB :** the data must follow this order : features, tree, vector._
+_**NB :** data must follow this order : features, tree, vector._
 
 
 
