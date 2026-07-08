@@ -11,6 +11,16 @@ from parse_answer import read_answer_file, read_answer
 def logger(text: str, verbose: bool = True):
     if verbose: print(text)
 
+
+def write_dttxt_file(dt: tree.DecisionTreeClassifier, v: list, feature_names=[], data_filename: str ="data.txt"):
+    """Write features, tree and vector in a file nammed `data_filename`."""
+    text_features = export_features(v, feature_names)
+    text_tree = export_tree(dt)
+    text_vector = export_vector(v)
+    text = text_features + "\n\n" + text_tree + "\n\n" + text_vector + "\n\n"
+    write_str_in_file(data_filename, text)
+
+
 def explain(dt: tree.DecisionTreeClassifier, v: list, 
             feature_names=[], data_filename: str ="data.txt", answer_filename = "ocaml_answer.txt", verbose: bool = False):
     """
@@ -40,12 +50,7 @@ def explain(dt: tree.DecisionTreeClassifier, v: list,
 
     ## write features, tree and vector in a file nammed `data_filename`
     log("begin export...")
-    text_features = export_features(v, feature_names)
-    text_tree = export_tree(dt)
-    text_vector = export_vector(v)
-    text = text_features + "\n\n" + text_tree + "\n\n" + text_vector + "\n\n"
-    write_str_in_file(data_filename, text)
-    print(text)
+    write_dttxt_file(dt, v, feature_names, data_filename)
     log("end export.\n")
 
 
