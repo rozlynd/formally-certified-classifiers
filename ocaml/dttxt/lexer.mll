@@ -33,6 +33,7 @@ rule token = parse
   | 'N'          { NodeToken }
   | 'L'          { LeafToken }
   | 'V'          { VectorToken }
+  | "Vs"         { VectorListToken }
   | 'T'          { TreeToken }
   | 'F'          { FeatureListToken }
   | "bool"       { BoolFeatureToken }

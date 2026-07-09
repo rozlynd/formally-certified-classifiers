@@ -15,6 +15,7 @@ open Parsing_utils
 %token NodeToken              // : "N"
 %token LeafToken              // : "L"
 %token VectorToken            // : "V"
+%token VectorListToken        // : "Vs"
 %token FeatureListToken       // : "F"
 %token BoolFeatureToken       // : "bool"
 %token FloatFeatureToken      // : "float"
@@ -32,9 +33,9 @@ open Parsing_utils
 
 
 (* Type de l'attribut synthétisé des non-terminaux *)
-%type <Parsing_utils.parsed_features> featurelist
-%type <Parsing_utils.named_parsed_tree> tree
-%type <Parsing_utils.parsed_vector> vector
+// %type <Parsing_utils.parsed_features> featurelist
+// %type <Parsing_utils.named_parsed_tree> tree
+// %type <Parsing_utils.parsed_vectors> vectors
 
 (* Type et définition de l'axiome *)
 %start <Parsing_utils.temp_parsed_file> main
@@ -71,7 +72,9 @@ open Parsing_utils
 
 *)
 
-main: fs = featurelist t = tree v = vector EOF { fs, t, v }
+main: 
+  | fs = featurelist t = tree v = vector EOF { fs, t, [v] }
+  | fs = featurelist t = tree vs = vector_list EOF { fs, t, vs }
 
 
 featurelist: FeatureListToken LeftParenthesisToken fs = features RightParenthesisToken { fs }
@@ -119,10 +122,16 @@ value:
 
 
 
+vector_list: VectorListToken LeftParenthesisToken vs=vectors RightParenthesisToken { vs }
+
+vectors:
+  | v = vector   { [v] }
+  | v = vector ComaToken vs = vectors   { v::vs }
+
 vector: VectorToken LeftParenthesisToken vs = vector_elements RightParenthesisToken { vs }
 
 vector_elements:
-  | /* empty */           { [ ] }
+  | /* empty */           { [  ] }
   | ve = vector_element   { [ve] }
   | ve = vector_element ComaToken ves = vector_elements   { ve::ves }
 

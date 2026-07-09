@@ -1,17 +1,19 @@
 
 
-F("feature0" : float, "feature1" : bool, "feature2" : ["s1", "s2"])
+F("a-b (cm)" : float, "feature1" : bool, "feature2" : ["s1", "s2"])
 
 T(
-    N("feature0", 1.14),
+    N("a-b (cm)", 1.14),
      L(0),
-     N("feature0", 1.),
+     N("feature1", ()),
       L(1),
       L(2)
 )
 
-V(30.0, true, "s1")
-
+Vs(
+    V(30.0, true, "s1"),
+    V(30.0, true, "s2")
+)
 
 (*
 

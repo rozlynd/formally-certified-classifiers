@@ -13,7 +13,8 @@ let read_file filename =
   let input = open_in filename in
   let filebuf = Lexing.from_channel input in
   try
-    let fs, t, v = Parser.main Lexer.token filebuf in 
+    let fs, t, vs = Parser.main Lexer.token filebuf in 
+    let v = List.hd(vs) in
     let dt = unname_tree t fs in
     match (type_error dt fs) with
     | None -> fs, dt, v

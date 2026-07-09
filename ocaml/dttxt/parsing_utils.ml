@@ -53,7 +53,9 @@ and parsed_vector_element =
 | ParsedEnumVectorElement of string
 ;;
 
-type temp_parsed_file = parsed_features * named_parsed_tree * parsed_vector;;
+type parsed_vectors = parsed_vector list;;
+
+type temp_parsed_file = parsed_features * named_parsed_tree * parsed_vectors;;
 
 type parsed_file = parsed_features * parsed_tree * parsed_vector;;
 
