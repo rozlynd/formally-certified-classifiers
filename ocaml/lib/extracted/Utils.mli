@@ -108,6 +108,8 @@ module type FinSet =
 
   val compl : t -> t
 
+  val init : (elt -> bool) -> t
+
   val shrink : (t -> bool) -> t -> t
  end
 
@@ -176,6 +178,8 @@ module MakeFinSetOn :
   val all : t
 
   val compl : t -> t
+
+  val init : (elt -> bool) -> t
 
   val shrink : (t -> bool) -> t -> t
  end

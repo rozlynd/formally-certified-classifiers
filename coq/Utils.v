@@ -373,10 +373,12 @@ Module Type FinSetOn (S : FinSig) <: Sets
 
     Parameter all : t.
     Parameter compl : t -> t.
+    Parameter init : (elt -> bool) -> t.
     Parameter shrink : (t -> bool) -> t -> t.
 
     Axiom In_all : forall (i : elt), In i all.
     Axiom In_compl : forall (s : t) (i : elt), In i (compl s) <-> ~ In i s.
+    Axiom In_init : forall (p : elt -> bool) (i : elt), In i (init p) <-> p i = true.
 
     Axiom shrink_spec1 : forall (p : t -> bool) (s : t),
         Subset (shrink p s) s.
@@ -453,6 +455,68 @@ Module MakeFinSetOn (S : FinSig) : FinSetOn S.
 
     Theorem In_compl : forall (s : t) (i : elt), In i (compl s) <-> ~ In i s.
     Proof. intros s i; unfold compl; rewrite diff_spec, all_spec; tauto. Qed.
+
+
+    Local Program Fixpoint init_aux (filt : elt -> bool) (n : nat) : t + { ~ n <= S.n } :=
+        match n with
+        | 0 => inleft empty
+        | S n =>
+            match to_fin n with
+            | inleft p =>
+                match init_aux filt n with
+                | inleft s =>
+                    if filt p then
+                        inleft (add p s)
+                    else
+                        inleft s
+                | inright _ => inright _
+                end
+            | inright _ => inright _
+            end
+        end.
+    Solve All Obligations with lia.
+
+    Lemma init_aux_spec : forall (filt : elt -> bool) (n : nat) (s : t) (x : fin S.n),
+        init_aux filt n = inleft s -> (In x s <-> filt x = true /\ to_nat x < n).
+    Proof.
+        intros filt; induction n as [| n IH ]; intros s x H; simpl in H.
+        -   inversion H; now split.
+        -   destruct (to_fin n) as [p |] eqn:Hn; try discriminate H.
+            destruct (init_aux filt n) as [s' |] eqn:Hs'; try discriminate H.
+            destruct (filt p) eqn:Hp; inversion H; split; intros H2.
+            +   apply add_spec in H2 as [H2 | H2].
+                *   apply to_fin_to_nat in Hn; subst; split; auto.
+                *   assert (H3 : filt x = true /\ to_nat x < n) by (now apply IH with s');
+                    destruct H3; split; auto.
+            +   destruct H2 as (H2 & H3); apply add_spec; inversion H3.
+                *   left; rewrite <- H4, to_nat_to_fin in Hn; now inversion Hn.
+                *   right; now apply IH.
+            +   assert (H3 : filt x = true /\ to_nat x < n) by (subst s; now apply IH with s');
+                destruct H3; split; auto.
+            +   specialize IH with s x; lapply IH; try (now rewrite H1).
+                assert (H3 : to_nat x <> n).
+                {
+                    intros abs; rewrite <- abs, to_nat_to_fin in Hn;
+                    inversion Hn; subst x; now rewrite Hp in H2.
+                }
+                intros H4; apply H4; destruct H2; split; try lia; auto.
+    Qed.
+
+    Program Definition init (filt : elt -> bool) : t :=
+        match init_aux filt S.n with
+        | inleft s => s
+        | inright _ => False_rect _ _
+        end.
+    Solve All Obligations with lia.
+
+    Theorem In_init : forall (p : elt -> bool) (i : elt), In i (init p) <-> p i = true.
+    Proof.
+        intros p i; unfold init;
+        destruct (init_aux p S.n) eqn:H; try lia;
+        apply init_aux_spec with (x := i) in H; split; intros H1;
+            try (now apply H);
+        apply H; split; [assumption | apply to_nat_lt].
+    Qed.
 
 
     Local Fixpoint shrink_aux (p : t -> bool) (s : t) (i : nat) : t + { S.n < i }.

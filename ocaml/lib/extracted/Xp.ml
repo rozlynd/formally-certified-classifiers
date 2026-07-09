@@ -76,6 +76,8 @@ module FeatureSigDefs =
 
   val compl : t -> t
 
+  val init : (elt -> bool) -> t
+
   val shrink : (t -> bool) -> t -> t
  end) ->
  struct
