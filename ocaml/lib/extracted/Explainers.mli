@@ -1,7 +1,10 @@
 open Bool
+open CNF
 open Datatypes
 open Equalities
 open Features
+open List0
+open Sat
 open Utils
 open Xp
 
@@ -150,6 +153,11 @@ module type Iterator =
 
   val block_down : S.t -> s -> s
  end
+
+module MakeIterator :
+ functor (S_:FinSet) ->
+ functor (Sat:SatSolver) ->
+ Iterator with module S = S_ with type s = S_.elt cnf
 
 module MakeEnumerator :
  functor (E_:InputProblem) ->

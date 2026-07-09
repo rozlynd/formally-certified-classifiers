@@ -1,6 +1,8 @@
-Require Import Bool.
+Require Import Bool List.
+Require FinFun.
+Import ListNotations.
 
-From RFXP Require Import Utils Xp.
+From RFXP Require Import Utils Xp CNF Sat.
 
 (* Base definitions *)
 
@@ -278,6 +280,13 @@ End IteratorBaseOn.
 
 Module Type IteratorOn (S : FinSet).
     Include IteratorBaseOn S.
+
+    Axiom pick_block_up :
+        forall X Y st, pick (block_up X st) = Some Y -> ~ S.Subset X Y.
+
+    Axiom pick_block_down :
+        forall X Y st, pick (block_down X st) = Some Y -> ~ S.Subset Y X.
+
 End IteratorOn.
 
 Module Type IteratorBase.
@@ -289,6 +298,76 @@ Module Type Iterator <: IteratorBase.
     Declare Module S : FinSet.
     Include IteratorOn S.
 End Iterator.
+
+
+Module MakeIterator     (S_ : FinSet)
+                        (Import Sat : SatSolver)
+                    : Iterator  with Module S := S_
+                                with Definition s := cnf (S_.elt).
+
+    Module S := S_.
+
+    Definition s := cnf S.elt.
+
+    Definition init : cnf S.elt := [].
+
+    Definition pick (c : cnf S.elt) :=
+        match solve c return option S.t with
+        | SAT i => Some (S.init i)
+        | UNSAT => None
+        end.
+
+
+    Local Lemma In_InA : forall (x : S.elt) (l : list S.elt),
+        In x l -> SetoidList.InA eq x l.
+    Proof. induction l; intros H; inversion H; [constructor 1 | constructor 2]; auto. Qed.
+
+    Local Lemma NoDupA_NoDup : forall (l : list S.elt),
+        SetoidList.NoDupA eq l -> NoDup l.
+    Proof. induction l; intros H; inversion H; constructor; auto using In_InA. Qed.
+
+    Local Definition clause_block (p : polarity) (X : S.t) : clause S.elt.
+        refine (exist _ (map (fun x => (x, p)) (S.elements X)) _).
+        apply FinFun.Injective_map_NoDup;
+        [ intros x y H; now inversion H
+        | cut (SetoidList.NoDupA eq (S.elements X));
+          [ apply NoDupA_NoDup
+          | apply S.elements_spec2w ] ].
+    Defined.
+
+
+    Definition block_up (X : S.t) (c : cnf S.elt) := clause_block neg X :: c.
+
+    Definition block_down (X : S.t) (c : cnf S.elt) := clause_block pos (S.compl X) :: c.
+
+
+    Theorem pick_block_up : forall (X Y : S.t) (st : s),
+        pick (block_up X st) = Some Y -> ~ S.Subset X Y.
+    Proof.
+        unfold pick; intros X Y st H1 abs;
+        destruct (solve (block_up X st)) as [I |] eqn:H2; inversion H1; subst Y;
+        apply sat_correct in H2;
+        apply andb_true_iff in H2 as (H2 & _);
+        apply existsb_exists in H2 as (l & H2 & H3);
+        apply in_map_iff in H2 as (x & H2 & H4);
+        apply In_InA, S.elements_spec1, abs, S.In_init in H4;
+        now rewrite <- H2 in H3; simpl in H3; rewrite H4 in H3.
+    Qed.
+
+    Theorem pick_block_down : forall (X Y : S.t) (st : s),
+        pick (block_down X st) = Some Y -> ~ S.Subset Y X.
+    Proof.
+        unfold pick; intros X Y st H1 abs;
+        destruct (solve (block_down X st)) as [I |] eqn:H2; inversion H1; subst Y;
+        apply sat_correct in H2;
+        apply andb_true_iff in H2 as (H2 & _);
+        apply existsb_exists in H2 as (l & H2 & H3);
+        apply in_map_iff in H2 as (x & H2 & H4);
+        apply In_InA, S.elements_spec1, S.In_compl in H4;
+        rewrite <- H2 in H3; simpl in H3; apply S.In_init in H3; auto.
+    Qed.
+
+End MakeIterator.
 
 
 Module MakeEnumerator   (Import E_ : InputProblem)

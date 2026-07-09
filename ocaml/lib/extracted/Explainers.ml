@@ -1,7 +1,10 @@
 open Bool
+open CNF
 open Datatypes
 open Equalities
 open Features
+open List0
+open Sat
 open Utils
 open Xp
 
@@ -228,6 +231,52 @@ module type Iterator =
   val block_up : S.t -> s -> s
 
   val block_down : S.t -> s -> s
+ end
+
+module MakeIterator =
+ functor (S_:FinSet) ->
+ functor (Sat:SatSolver) ->
+ struct
+  module S = S_
+
+  type s = S.elt cnf
+
+  (** val init : S.elt cnf **)
+
+  let init =
+    []
+
+  (** val pick : S.elt cnf -> S.t option **)
+
+  let pick c =
+    match Sat.solve S.n c with
+    | Sat.SAT i -> Some (S.init i)
+    | Sat.UNSAT -> None
+
+  (** val clause_block : polarity -> S.t -> S.elt clause **)
+
+  let clause_block p x =
+    map (fun x0 -> (x0, p)) (S.elements x)
+
+  (** val block_up : S.t -> S.elt cnf -> S.elt clause list **)
+
+  let block_up x c =
+    (clause_block Coq_neg x) :: c
+
+  (** val block_down : S.t -> S.elt cnf -> S.elt clause list **)
+
+  let block_down x c =
+    (clause_block Coq_pos (S.compl x)) :: c
+
+  (** val pick_block_up : __ **)
+
+  let pick_block_up =
+    __
+
+  (** val pick_block_down : __ **)
+
+  let pick_block_down =
+    __
  end
 
 module MakeEnumerator =
