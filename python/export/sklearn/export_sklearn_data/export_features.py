@@ -22,20 +22,21 @@ def export_features(v: list, feature_names = None)-> str:
             return '"' + feature_names[i] + '" : '
         else: return ""
 
-    r = "F("
+    r = "F(\n"
+    prefix = "\t"
+    suffix = ",\n"
 
     ## check that each element has type `float` (and construct the returned string)
     for i, e in enumerate(v):
-        e_str = get_feature_name(i)
+        if i >= len(v)-1:
+            suffix = "\n"
+        e_str = prefix
+        e_str += get_feature_name(i)
         if isinstance(e, float):
             e_str += "float"
         else:
             raise TypeError("Error in export_features : features must be of type float.")
-        r += e_str + ", "
-    
-    ## remove the last ", "
-    if r[-2:] == ", ":
-        r = r[:-2]
+        r += e_str + suffix
     
     r += ")"
 
