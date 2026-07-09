@@ -1,21 +1,21 @@
 Require Import MSets.
 
-From RFXP Require Import CNF.
+From RFXP Require Import Utils CNF.
 
 Module Type SatSolverRaw.
 
-    Variant ans := SAT (I : assignment nat) | UNSAT.
+    Variant ans {n : nat} := SAT (I : assignment (fin n)) | UNSAT.
 
-    Parameter solve : cnf nat -> ans.
+    Parameter solve : forall {n : nat}, cnf (fin n) -> @ans n.
 
 End SatSolverRaw.
 
 Module Type IsCorrectSatSolver (Import Sat : SatSolverRaw).
 
-    Axiom sat_correct : forall (c : cnf nat) (I : assignment nat),
+    Axiom sat_correct : forall {n : nat} (c : cnf (fin n)) (I : assignment (fin n)),
         solve c = SAT I -> eval_cnf I c = true.
 
-    Axiom unsat_correct : forall (c : cnf nat) (I : assignment nat),
+    Axiom unsat_correct : forall {n : nat} (c : cnf (fin n)) (I : assignment (fin n)),
         solve c = UNSAT -> eval_cnf I c = false.
 
 End IsCorrectSatSolver.
@@ -25,13 +25,13 @@ Module Type SatSolver := SatSolverRaw <+ IsCorrectSatSolver.
 
 Module Type CCEncoderRaw.
 
-    Parameter encode : cnf_with_cc nat -> cnf nat.
+    Parameter encode : forall {m n : nat}, cnf_with_cc (fin m) -> cnf (fin n).
 
 End CCEncoderRaw.
 
 Module Type IsCorrectCCEncoder (Import Enc : CCEncoderRaw).
 
-    Axiom encode_correct : forall (c : cnf_with_cc nat) (I : assignment nat),
+    Axiom encode_correct : forall {n : nat} (c : cnf_with_cc (fin n)) (I : assignment (fin n)),
         eval_cnf I (encode c) = eval_cnf_with_cc I c.
 
 End IsCorrectCCEncoder.
@@ -41,15 +41,18 @@ Module Type CCEncoder := CCEncoderRaw <+ IsCorrectCCEncoder.
 
 Module Type MaxSatSolverRaw.
 
+    Declare Module N : FinSig.
+
     Declare Module S : Sets
-        with Definition E.t := nat
-        with Definition E.eq := @eq nat.
+        with Definition E.t := fin N.n
+        with Definition E.eq := @eq (fin N.n).
 
     (* solve [hard clauses] [soft clauses] finds a maximally SAT set of soft clauses *)
-    Parameter solve : cnf nat -> cnf nat -> S.t * assignment nat.
+    Parameter solve : cnf (fin N.n) -> cnf (fin N.n) -> S.t * assignment (fin N.n).
 
 End MaxSatSolverRaw.
 
+(*
 Module MakeMaxSatEval (Import MSat : MaxSatSolverRaw).
 
     Variant filt := include (X : S.t) | exclude (X : S.t).
@@ -60,7 +63,7 @@ Module MakeMaxSatEval (Import MSat : MaxSatSolverRaw).
         | exclude X => fun n => negb (S.mem n X)
         end.
 
-    Fixpoint filter_elts {A : Type} (f : filt) (c : list A) : nat -> list A -> list A :=
+    Fixpoint filter_elts {A : Type} (f : filt) (c : list A) : S.elt -> list A -> list A :=
         match c with
         | nil => fun _ acc => acc
         | cons cls c => fun n acc =>
@@ -188,3 +191,4 @@ Module Type IsCorrectMaxSatSolver (Import MSat : MaxSatSolverRaw).
 End IsCorrectMaxSatSolver.
 
 Module Type MaxSatSolver := MaxSatSolverRaw <+ IsCorrectMaxSatSolver.
+*)

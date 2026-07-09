@@ -1,6 +1,8 @@
 -Q . RFXP
 ./Utils.v
 ./FloatUtils.v
+./CNF.v
+./Sat.v
 ./Features.v
 ./Xp.v
 ./Explainers.v
@@ -9,6 +11,4 @@
 ./DTXp.v
 ./DTGenVectors.v
 ./RF.v
-./CNF.v
-./Sat.v
 ./Extract.v
