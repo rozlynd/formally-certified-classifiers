@@ -19,11 +19,11 @@ let string_of_features_with_names l parsed_features =
   let rec aux acc l =
     match l with
     | [] -> acc ^ " ]"
-    | x :: l -> aux (acc ^ ", " ^ (get_feature_name_at_index x parsed_features)) l
+    | x :: l -> aux (acc ^ ", \"" ^ (get_feature_name_at_index x parsed_features) ^ "\"") l
   in
   match l with
   | [] -> "[]"
-  | x :: q -> aux ("[ " ^ (get_feature_name_at_index x parsed_features)) q
+  | x :: q -> aux ("[ \"" ^ (get_feature_name_at_index x parsed_features) ^ "\"") q
 ;;
 (* 
 let string_of_int_list l =
@@ -91,37 +91,52 @@ let main_file verbose mode input_file output_file =
     let filename = input_file
   end) in
 
-  let module Input = MakeDTInputProblem (D) in
-  log "done.\n\n";
+  (* module containing only features and tree data (separation to handle multi vectors files) *)
+  let module FTD = MakeFeatureTreeData (D) in
 
-  if mode = All then
-    failwith "Error : parameter -all is not available yet.";
+  let module MakeI = MakeDTInputProblem (FTD) in
 
-  if mode = AXp || mode = Both then
-    begin
-      let module FindA = DtAXpFinder (Input) in
-      let axp = FindA.findAXp Input.S.all in
-      (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
-      let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
-      print_endline ("AXp : " ^ outA);
-      write_in_file oc ("AXp : " ^ outA);
-    end;
+  (* vector treatment function *)
+  let vector_treatment (v:parsed_vector) = 
+    let module Input = MakeI (struct let parsed_vector = v end) in
     
-  if mode = CXp || mode = Both then
-    begin
-      let module FindC = DtCXpFinder (Input) in
-      let cxp = FindC.findCXp Input.S.all in
-      (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
-      let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
-      print_endline ("CXp : " ^ outC);
-      write_in_file oc ("CXp : " ^ outC);
-    end;
+    if mode = All then
+      failwith "Error : parameter -all is not available yet.";
+
+    if mode = AXp || mode = Both then
+      begin
+        let module FindA = DtAXpFinder (Input) in
+        let axp = FindA.findAXp Input.S.all in
+        (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
+        let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
+        print_endline ("AXp : " ^ outA);
+        write_in_file oc ("AXp : " ^ outA);
+      end;
+      
+    if mode = CXp || mode = Both then
+      begin
+        let module FindC = DtCXpFinder (Input) in
+        let cxp = FindC.findCXp Input.S.all in
+        (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
+        let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
+        print_endline ("CXp : " ^ outC);
+        write_in_file oc ("CXp : " ^ outC);
+      end;
+    
+      print_endline ";";
+    write_in_file oc ";"
+  in
+
+  (* run on all vectors *)
+  List.iter (fun v -> vector_treatment v; write_in_file oc ";") D.parsed_vectors;
+  
 
   log "info : main executed.\n";
   close_out oc (* close the output file *)
 ;;
 
-exception Break;;
+
+exception BreakForHelp;;
 
 
 let () =
@@ -135,7 +150,7 @@ let () =
     for i=1 to (Array.length Sys.argv - 1) do
       let a =  Sys.argv.(i) in
       if a = "-h" || a = "-help" || a = "--help" then
-        raise Break
+        raise BreakForHelp
       else if a = "-v" then
         verbose := true
       else if a = "-a" then
@@ -167,5 +182,5 @@ let () =
     if !input_file_given then 
       main_file !verbose !mode !input_file !output_file
     else failwith "no input file given"
-  with Break -> print_endline help_string
+  with BreakForHelp -> print_endline help_string
 

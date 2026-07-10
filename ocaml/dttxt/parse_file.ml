@@ -14,10 +14,10 @@ let read_file filename =
   let filebuf = Lexing.from_channel input in
   try
     let fs, t, vs = Parser.main Lexer.token filebuf in 
-    let v = List.hd(vs) in
+    (* let v = List.hd(vs) in *)
     let dt = unname_tree t fs in
     match (type_error dt fs) with
-    | None -> fs, dt, v
+    | None -> fs, dt, vs
     | Some i -> failwith ("Error : type mismatch between tree (node " ^ (string_of_int i) ^ ") and features declaration.")
     
     (* print_tree t;
