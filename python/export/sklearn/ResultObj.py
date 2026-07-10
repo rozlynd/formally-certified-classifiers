@@ -1,4 +1,6 @@
 from utils import string_of_list
+
+
 class ResultObj:
 
     __axps: list
@@ -9,10 +11,11 @@ class ResultObj:
         self.__cxps = _cxps
     
     def __repr__(self):
+        prefix = '\t'
         return (
             "ResultObj(\n" +
-            f"\taxps : {string_of_list(self.__axps)},\n" +
-            f"\tcxps : {string_of_list(self.__cxps)}" +
+            f"{prefix}axps : {string_of_list(self.__axps, prefix)},\n" +
+            f"{prefix}cxps : {string_of_list(self.__cxps, prefix)}" +
             "\n)"
         )
 

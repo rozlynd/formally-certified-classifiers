@@ -1,11 +1,11 @@
 from ResultObj import ResultObj
 from utils import list_from_string
 
+
 def read_answer_file(filename: str)-> str:
     """Read a file and return the string of its content."""
     with open(filename, 'r') as f:
         return f.read()
-
 
 
 def read_answer(answer: str)-> ResultObj:
@@ -18,13 +18,23 @@ def read_answer(answer: str)-> ResultObj:
     ```
     """
 
+    # result of the function, list of ResultObj
+    r = []
+
+    # temp lists containing axps and cxps of the current vector
     axps = []
     cxps = []
+
+    def register_and_clear():
+        nonlocal axps, cxps
+        r.append(ResultObj(axps, cxps))
+        axps = []
+        cxps = []
 
     lines = answer.split('\n')
     lines = list(filter(lambda x: x!='', lines)) # filter empty lines
 
-    for i, line in enumerate(lines) :
+    for i, line in enumerate(lines):
         l = [ e.strip() for e in line.split(':') ]
         if l[0].lower() == "axp":
             try:
@@ -38,7 +48,12 @@ def read_answer(answer: str)-> ResultObj:
                 cxps.append(l)
             except:
                 print(f"warning : explanation n°{i} is not correctly written. It is not read.")
+        elif l[0] == ";":
+            if (axps or cxps): register_and_clear()
         else:
             print(f"warning : explanation n°{i} is neither axp nor cxp. It is not read")
 
-    return ResultObj(axps, cxps)
+    if axps or cxps:
+        register_and_clear()
+
+    return r

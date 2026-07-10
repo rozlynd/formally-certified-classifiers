@@ -2,7 +2,7 @@ from sklearn import tree
 import subprocess
 
 from export_sklearn_data.export_tree import export_tree
-from export_sklearn_data.export_vector import export_vector
+from export_sklearn_data.export_vector import export_vectors
 from export_sklearn_data.export_features import export_features
 from utils import write_str_in_file
 from parse_answer import read_answer_file, read_answer
@@ -12,11 +12,11 @@ def logger(text: str, verbose: bool = True):
     if verbose: print(text)
 
 
-def write_dttxt_file(dt: tree.DecisionTreeClassifier, v: list, feature_names=[], data_filename: str ="data.txt"):
+def write_dttxt_file(dt: tree.DecisionTreeClassifier, vs: list[list], feature_names=[], data_filename: str ="data.txt"):
     """Write features, tree and vector in a file nammed `data_filename`."""
-    text_features = export_features(v, feature_names)
+    text_features = export_features(vs[0], feature_names)
     text_tree = export_tree(dt)
-    text_vector = export_vector(v)
+    text_vector = export_vectors(vs)
     text = text_features + "\n\n" + text_tree + "\n\n" + text_vector + "\n\n"
     write_str_in_file(data_filename, text)
 

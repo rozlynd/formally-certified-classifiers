@@ -2,6 +2,9 @@ from sklearn.datasets import load_iris
 from sklearn import tree
 
 from dt_explanation import explain
+from export_sklearn_data.find_interesting_vectors import find_vectors
+from export_sklearn_data.export_tree import export_tree
+from export_sklearn_data.export_features import export_features
 
 
 def main():
@@ -18,10 +21,10 @@ def main():
     dt = tree.DecisionTreeClassifier(random_state=0, max_depth=2)
     dt = dt.fit(X, y)
 
-    ## create vector
-    v = X[0]
 
-    res_obj = explain(dt, v, feature_names=iris['feature_names'], data_filename=filename_, verbose=True)
+    vs = find_vectors(dt, len(X[0]))
+
+    res_obj = explain(dt, vs, feature_names=iris['feature_names'], data_filename=filename_, verbose=True)
     print(res_obj)
 
 
