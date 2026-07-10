@@ -1,0 +1,90 @@
+F(
+	"alcohol" : float,
+	"malic_acid" : float,
+	"ash" : float,
+	"alcalinity_of_ash" : float,
+	"magnesium" : float,
+	"total_phenols" : float,
+	"flavanoids" : float,
+	"nonflavanoid_phenols" : float,
+	"proanthocyanins" : float,
+	"color_intensity" : float,
+	"hue" : float,
+	"od280/od315_of_diluted_wines" : float,
+	"proline" : float
+)
+
+T(
+	N(12, 0x1.7980000000000p+9),
+	 N(11, 0x1.0eb8510000000p+1),
+	  L(2),
+	  L(1),
+	 N(6, 0x1.151eb90000000p+1),
+	  L(2),
+	  L(0)
+)
+
+
+Vs(
+	V(
+		0x1.d20d8049d406cp-2,
+		0x1.a5999502f2916p-2,
+		0x1.4235c2f3012acp-3,
+		0x1.e7ffceb27b3c1p-1,
+		0x1.4658b5c16d161p-1,
+		0x1.e3c37423e1248p-4,
+		0x1.d77f7a15e7b28p-3,
+		0x1.7a59e52ed6f9dp-1,
+		0x1.c752f2ece5134p-3,
+		0x1.a2dd07831900cp-1,
+		0x1.80bb77ffeeec6p-2,
+		0x1.598b76ed15f4cp+0,
+		0x1.7972124075f86p+9
+	),
+	V(
+		0x1.93a337f0a97f4p-1,
+		0x1.8bc0f8a05db52p-2,
+		0x1.afad515f571dep-1,
+		0x1.10c8cfcdb907ap-1,
+		0x1.ccad4e810e1d4p-3,
+		0x1.a51fe7700d90fp-1,
+		0x1.ab9648f0e4c44p-2,
+		0x1.d748c48547466p-2,
+		0x1.10e2d1ac3d97ep-2,
+		0x1.314080d6ef421p-1,
+		0x1.80851ef4d5b48p-2,
+		0x1.30da038e98b61p+1,
+		0x1.797605e357990p+9
+	),
+	V(
+		0x1.711eb6dac0330p-1,
+		0x1.18e3c2d7cfa15p-1,
+		0x1.a17a409b521a1p-1,
+		0x1.a0f2fd5665abap-1,
+		0x1.f3ec39290b88dp-1,
+		0x1.814f65b56c00dp-1,
+		0x1.099d4a49078ffp+1,
+		0x1.0628bef131a40p-2,
+		0x1.6a64661466f94p-1,
+		0x1.85f97352100ebp-1,
+		0x1.2e681e883a820p-1,
+		0x1.a6beb29012b68p-3,
+		0x1.79b43245e1416p+9
+	),
+	V(
+		0x1.df97cf03e5888p-4,
+		0x1.5039110ae4a56p-1,
+		0x1.e2156b7534b32p-2,
+		0x1.722db281e1c77p-1,
+		0x1.2bfe362cb09bcp-3,
+		0x1.3836817272cd3p-1,
+		0x1.74d77acc92bdep+1,
+		0x1.c505c1ba3f967p-1,
+		0x1.3c5c939f4f0ecp-3,
+		0x1.e198b1f270274p-2,
+		0x1.f95ea4044d052p-2,
+		0x1.dae61a4c5f6a4p-3,
+		0x1.79df90a22f0e1p+9
+	)
+)
+
