@@ -18,8 +18,10 @@ def main():
     iris = load_iris()
     X = iris['data']
     y = iris['target']
-    dt = tree.DecisionTreeClassifier(random_state=0, max_depth=2)
+    dt = tree.DecisionTreeClassifier(random_state=0)#, max_depth=2)
     dt = dt.fit(X, y)
+
+    # print("accuracy : " + dt.score(X, y))
 
 
     vs = find_vectors(dt, len(X[0]))

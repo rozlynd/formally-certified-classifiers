@@ -1,13 +1,85 @@
-F(float, float, float, float)
+F(
+	"sepal length (cm)" : float,
+	"sepal width (cm)" : float,
+	"petal length (cm)" : float,
+	"petal width (cm)" : float
+)
 
 T(
 	N(3, 0x1.99999a0000000p-1),
 	 L(0),
 	 N(3, 0x1.c000000000000p+0),
-	  L(1),
-	  L(2)
+	  N(2, 0x1.3ccccd0000000p+2),
+	   N(3, 0x1.a666670000000p+0),
+	    L(1),
+	    L(2),
+	   N(3, 0x1.8ccccd0000000p+0),
+	    L(2),
+	    N(2, 0x1.5ccccd0000000p+2),
+	     L(1),
+	     L(2),
+	  N(2, 0x1.3666670000000p+2),
+	   N(1, 0x1.8ccccd0000000p+1),
+	    L(2),
+	    L(1),
+	   L(2)
 )
 
 
-V(0x1.4666666666666p+2, 0x1.c000000000000p+1, 0x1.6666666666666p+0, 0x1.999999999999ap-3)
+Vs(
+	V(
+		0x1.5ceed5ddb8314p-3,
+		0x1.fad7106a92d1ep-1,
+		0x1.52692b24fa033p-1,
+		0x1.57b680cc6b80fp-1
+	),
+	V(
+		0x1.781aa3f89f90ep-2,
+		0x1.a6270d1dac58cp-3,
+		0x1.1319ba262e555p+2,
+		0x1.954a5eb31b936p+0
+	),
+	V(
+		0x1.57061e5ecab08p-4,
+		0x1.d3ea0c024c4d8p-4,
+		0x1.08b9f133fd8afp+2,
+		0x1.b6af0d66ff499p+0
+	),
+	V(
+		0x1.2e7c77a85f9c2p-2,
+		0x1.22b79a837c2a0p-1,
+		0x1.53e6966ac1ca6p+2,
+		0x1.5ae877378bcb0p+0
+	),
+	V(
+		0x1.b303db1554044p-2,
+		0x1.eae7fd1454ab0p-4,
+		0x1.5688f405c4ec9p+2,
+		0x1.a3ecc929e8065p+0
+	),
+	V(
+		0x1.d2612249b67ecp-1,
+		0x1.eb17183179ad5p-1,
+		0x1.886d59912cc66p+2,
+		0x1.ac22113ddc31cp+0
+	),
+	V(
+		0x1.49256247b7964p-3,
+		0x1.85a2e1f6900c0p+1,
+		0x1.0f46595d6eb75p+2,
+		0x1.de7bb2f34d344p+0
+	),
+	V(
+		0x1.61b8c6eae74d8p-2,
+		0x1.e2feda7e85ef8p+1,
+		0x1.04f0f3d5ec917p+2,
+		0x1.141d0c5f73076p+1
+	),
+	V(
+		0x1.2a11317b4c903p-1,
+		0x1.8e4bdaf78e72dp-1,
+		0x1.5ab0f7809c931p+2,
+		0x1.d20bb39b316cep+0
+	)
+)
 

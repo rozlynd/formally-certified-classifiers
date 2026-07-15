@@ -1,2 +1,36 @@
-AXp : [ 4 ]
-CXp : [ 4 ]
+AXp : [ "petal width (cm)" ]
+CXp : [ "petal width (cm)" ]
+;
+;
+AXp : [ "petal length (cm)", "petal width (cm)" ]
+CXp : [ "petal length (cm)" ]
+;
+;
+AXp : [ "petal length (cm)", "petal width (cm)" ]
+CXp : [ "petal length (cm)" ]
+;
+;
+AXp : [ "petal length (cm)", "petal width (cm)" ]
+CXp : [ "petal length (cm)" ]
+;
+;
+AXp : [ "petal length (cm)", "petal width (cm)" ]
+CXp : [ "petal length (cm)" ]
+;
+;
+AXp : [ "petal length (cm)", "petal width (cm)" ]
+CXp : [ "petal length (cm)" ]
+;
+;
+AXp : [ "sepal width (cm)", "petal width (cm)" ]
+CXp : [ "sepal width (cm)" ]
+;
+;
+AXp : [ "sepal width (cm)", "petal length (cm)", "petal width (cm)" ]
+CXp : [ "sepal width (cm)" ]
+;
+;
+AXp : [ "sepal width (cm)", "petal width (cm)" ]
+CXp : [ "sepal width (cm)", "petal length (cm)" ]
+;
+;

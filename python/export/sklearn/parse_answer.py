@@ -25,6 +25,7 @@ def read_answer(answer: str)-> ResultObj:
     axps = []
     cxps = []
 
+
     def register_and_clear():
         nonlocal axps, cxps
         r.append(ResultObj(axps, cxps))
