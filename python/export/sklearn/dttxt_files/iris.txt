@@ -1,8 +1,8 @@
 F(
 	"sepal length (cm)" : float,
-	"sepal width (cm)" : float,
+	"sepal width  (cm)" : float,
 	"petal length (cm)" : float,
-	"petal width (cm)" : float
+	"petal width  (cm)" : float
 )
 
 T(
