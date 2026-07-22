@@ -4,6 +4,8 @@ open Extracted
 open DTXp
 open Utils
 open Dttxt.Parsing_utils
+open Explainers
+open Driver_enumerator
 
 
 (* let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
@@ -25,7 +27,7 @@ let string_of_features_with_names l parsed_features =
   | [] -> "[]"
   | x :: q -> aux ("[ \"" ^ (get_feature_name_at_index x parsed_features) ^ "\"") q
 ;;
-(* 
+
 let string_of_int_list l =
   let rec aux acc l =
     match l with
@@ -35,7 +37,7 @@ let string_of_int_list l =
   match l with
   | [] -> "[]"
   | x :: l -> aux ("[ " ^ string_of_int x) l
-;; *)
+;;
 
 
 let help_string = 
@@ -101,29 +103,42 @@ let main_file verbose mode input_file output_file =
     let module Input = MakeI (struct let parsed_vector = v end) in
     
     if mode = All then
-      failwith "Error : parameter -all is not available yet.";
+      begin
+        let module Solver = MakeSatSolver in
+        let module Iter = MakeIterator (Input.S) (Solver) in
+        let module Enum = MakeEnumerator (Input) (Iter) (DtWCXpChecker (Input)) (DtCXpFinder (Input)) (DtAXpFinder (Input)) in
+        let f' x = match x with
+          | Enum.Xp.Coq_isAXp y -> "axp : " ^ string_of_int_list (as_list (module Input.S) y)
+          | Enum.Xp.Coq_isCXp y -> "cxp : " ^ string_of_int_list (as_list (module Input.S) y)
+        in 
+        let f x = print_endline (f' x) in
+        iter f Enum.get Enum.record Enum.init 0;
+        print_endline "termine au bon endroit"
+      end
+    else begin
 
-    if mode = AXp || mode = Both then
-      begin
-        let module FindA = DtAXpFinder (Input) in
-        let axp = FindA.findAXp Input.S.all in
-        (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
-        let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
-        print_endline ("AXp : " ^ outA);
-        write_in_file oc ("AXp : " ^ outA);
-      end;
-      
-    if mode = CXp || mode = Both then
-      begin
-        let module FindC = DtCXpFinder (Input) in
-        let cxp = FindC.findCXp Input.S.all in
-        (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
-        let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
-        print_endline ("CXp : " ^ outC);
-        write_in_file oc ("CXp : " ^ outC);
-      end;
+      if mode = AXp || mode = Both then
+        begin
+          let module FindA = DtAXpFinder (Input) in
+          let axp = FindA.findAXp Input.S.all in
+          (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
+          let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
+          print_endline ("AXp : " ^ outA);
+          write_in_file oc ("AXp : " ^ outA);
+        end;
+        
+      if mode = CXp || mode = Both then
+        begin
+          let module FindC = DtCXpFinder (Input) in
+          let cxp = FindC.findCXp Input.S.all in
+          (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
+          let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
+          print_endline ("CXp : " ^ outC);
+          write_in_file oc ("CXp : " ^ outC);
+        end;
+    end;
     
-      print_endline ";";
+    print_endline ";";
     write_in_file oc ";"
   in
 

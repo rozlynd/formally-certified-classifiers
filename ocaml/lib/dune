@@ -2,5 +2,5 @@
 
 (library
  (name rfxp)
- (libraries dttxt coq-core.kernel)
+ (libraries dttxt coq-core.kernel ocaml-sat-solvers)
  (flags -w -unused-open))
