@@ -79,14 +79,17 @@ let write_in_file oc message =
 
 
 
-
-
-let main_file verbose mode input_file output_file =
+let main_file verbose mode input_file output_file_opt =
   
   let log = logger verbose in
-
-  let oc = open_and_clear_file output_file in (* open the output file *)
-
+  
+  let oc_opt, write = match output_file_opt with
+  | None -> None, print_endline
+  | Some f ->
+      let oc = open_and_clear_file f in (* open the output file *)
+      Some oc, write_in_file oc
+  in
+  
   log "info : parsing file...";
   
   let module D = Driver_file.MakeData (struct
@@ -111,7 +114,7 @@ let main_file verbose mode input_file output_file =
           | Enum.Xp.Coq_isAXp y -> "axp : " ^ string_of_int_list (as_list (module Input.S) y)
           | Enum.Xp.Coq_isCXp y -> "cxp : " ^ string_of_int_list (as_list (module Input.S) y)
         in 
-        let f x = print_endline (f' x) in
+        let f x = write (f' x) in
         iter f Enum.get Enum.record Enum.init 0;
         print_endline "termine au bon endroit"
       end
@@ -123,8 +126,7 @@ let main_file verbose mode input_file output_file =
           let axp = FindA.findAXp Input.S.all in
           (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
           let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
-          print_endline ("AXp : " ^ outA);
-          write_in_file oc ("AXp : " ^ outA);
+          write ("AXp : " ^ outA);
         end;
         
       if mode = CXp || mode = Both then
@@ -133,21 +135,21 @@ let main_file verbose mode input_file output_file =
           let cxp = FindC.findCXp Input.S.all in
           (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
           let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
-          print_endline ("CXp : " ^ outC);
-          write_in_file oc ("CXp : " ^ outC);
+          write ("CXp : " ^ outC);
         end;
     end;
     
-    print_endline ";";
-    write_in_file oc ";"
+    write ";";
   in
 
   (* run on all vectors *)
-  List.iter (fun v -> vector_treatment v; write_in_file oc ";") D.parsed_vectors;
+  List.iter (fun v -> vector_treatment v; write ";") D.parsed_vectors;
   
 
   log "info : main executed.\n";
-  close_out oc (* close the output file *)
+  match oc_opt with
+  | Some oc -> close_out oc (* close the output file *)
+  | _ -> ()
 ;;
 
 
@@ -195,7 +197,7 @@ let () =
         end
     done;
     if !input_file_given then 
-      main_file !verbose !mode !input_file !output_file
+      main_file !verbose !mode !input_file (if !output_file_given then Some !output_file else None)
     else failwith "no input file given"
   with BreakForHelp -> print_endline help_string
 
