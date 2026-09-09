@@ -34,7 +34,6 @@ if __name__ == "__main__":
     main()
 
 
-
 # # Split dataset into training set and test set
 # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1) # 70% training and 30% test
 

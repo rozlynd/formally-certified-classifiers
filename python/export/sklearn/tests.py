@@ -74,10 +74,6 @@ def test_complete():
     explain(dt, v, verbose=True)
 
 
-
-
 if __name__ == "__main__":
     test_features()
-
-
 

@@ -58,3 +58,4 @@ def read_answer(answer: str)-> ResultObj:
         register_and_clear()
 
     return r
+

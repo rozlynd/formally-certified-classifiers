@@ -1,4 +1,3 @@
-
 def flatten_str_list(l: list[str])-> str:
     """
     Flatten a list of str `l` to get one string.\n
@@ -44,7 +43,4 @@ def string_of_list(l: list[str], prefix:str = "")-> str:
     for e in l:
         res += prefix + "\t" + str(e) + ',\n'
     return res[:-2] + "\n" + prefix + "]"
-
-
-
 
