@@ -1,8 +1,8 @@
-open Extracted;;
-open CNF;;
-open Utils;;
-open Satwrapper;;
-open Explainers;;
+open Extracted
+open CNF
+open Utils
+open Satwrapper
+open Explainers
 
 (** val sat_setup : 
     solver -> CNF.t -> unit 
@@ -13,16 +13,16 @@ let rec sat_setup solver l =
   let rec aux c = 
     match c with
     | [] -> []
-    | (n, pol) :: q -> match pol with
-      | Coq_pos -> (Po (to_nat 0 n))::(aux q)
-      | Coq_neg -> (Ne (to_nat 0 n))::(aux q)
+    | (n, pol) :: q ->
+        match pol with
+      | Coq_pos -> Po (to_nat 0 n) :: aux q
+      | Coq_neg -> Ne (to_nat 0 n) :: aux q
   in
   match l with
-  | [] -> ();
-  | t::q -> solver#add_clause_array (Array.of_list (aux t)); (* Each clause is added, an array corresponds to the disjunction of its elements *)
-    (sat_setup solver q)
-;;
-
+  | [] -> ()
+  | t::q ->
+      solver#add_clause_array (Array.of_list (aux t)); (* Each clause is added, an array corresponds to the disjunction of its elements *)
+      sat_setup solver q
 
 module MakeSatSolver : Sat.SatSolver =
  struct
@@ -36,7 +36,7 @@ module MakeSatSolver : Sat.SatSolver =
   
   let sat_result solver n =
     match solver#get_solve_result with
-      | SolveSatisfiable ->  SAT (extract_get_variable_function solver n)
+      | SolveSatisfiable -> SAT (extract_get_variable_function solver n)
       | SolveUnsatisfiable -> UNSAT
       | SolveFailure s -> failwith s
 
@@ -59,18 +59,19 @@ module MakeSatSolver : Sat.SatSolver =
 
 let rec string_of_cnf cnf = match cnf with
   | [] -> ""
-  | t::q -> (string_of_clause t) ^ "\n" ^ (string_of_cnf q)
+  | t :: q -> string_of_clause t ^ "\n" ^ string_of_cnf q
+
 and string_of_clause c = match c with
   | [] -> ""
-  | t::q -> (string_of_literal t) ^ ";" ^ (string_of_clause q)
+  | t :: q -> string_of_literal t ^ ";" ^ string_of_clause q
+
 and string_of_literal l = match l with
-  | i, Coq_pos -> "+" ^ (string_of_int (to_nat 0 i))
-  | i, Coq_neg -> "-" ^ (string_of_int (to_nat 0 i))
+  | i, Coq_pos -> "+" ^ string_of_int (to_nat 0 i)
+  | i, Coq_neg -> "-" ^ string_of_int (to_nat 0 i)
 
 let rec iter f get record st cpt =
   let x = get st in
-  print_endline ("iter n°" ^ (string_of_int cpt));
-  (* print_endline ("cnf : " ^ (string_of_cnf st)); *)
+  print_endline ("iter n°" ^ string_of_int cpt);
   match x with
   | None -> ()
   | Some y -> 
@@ -80,6 +81,4 @@ let rec iter f get record st cpt =
       if cpt > 20 then failwith "too much iterations"
       else iter f get record next_st (cpt+1)
     end
-
-
 

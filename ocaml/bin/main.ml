@@ -7,26 +7,19 @@ open Dttxt.Parsing_utils
 open Explainers
 open Driver_enumerator
 
-
-(* let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
-  let l = S.elements e in
-  List.map (fun f -> Extracted.Utils.to_nat S.n f + 1) l
-;; *)
 let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
   let l = S.elements e in
   List.map (fun f -> Extracted.Utils.to_nat S.n f) l
-;;
 
 let string_of_features_with_names l parsed_features = 
   let rec aux acc l =
     match l with
     | [] -> acc ^ " ]"
-    | x :: l -> aux (acc ^ ", \"" ^ (get_feature_name_at_index x parsed_features) ^ "\"") l
+    | x :: l -> aux (acc ^ ", \"" ^ get_feature_name_at_index x parsed_features ^ "\"") l
   in
   match l with
   | [] -> "[]"
-  | x :: q -> aux ("[ \"" ^ (get_feature_name_at_index x parsed_features) ^ "\"") q
-;;
+  | x :: l -> aux ("[ \"" ^ get_feature_name_at_index x parsed_features ^ "\"") l
 
 let string_of_int_list l =
   let rec aux acc l =
@@ -37,8 +30,6 @@ let string_of_int_list l =
   match l with
   | [] -> "[]"
   | x :: l -> aux ("[ " ^ string_of_int x) l
-;;
-
 
 let help_string = 
   "The program must be called like this :
@@ -53,12 +44,9 @@ let help_string =
 
     <input_file>    the file containing Decision Tree informations.
     <output_file>   the file to write the results."
-;;
 
-let logger (verbose:bool) (s:string) =
+let logger (verbose : bool) (s : string) =
   if verbose then print_string s
-;;
-
 
 (* enum type giving the research goal. *)
 type mode = 
@@ -66,35 +54,27 @@ type mode =
   | CXp
   | Both
   | All
-;;
-
-
 
 let open_and_clear_file filename =
   open_out_gen [Open_wronly; Open_creat] 0o666 filename
-;;
+
 let write_in_file oc message = 
-  Printf.fprintf oc "%s\n" message;
-;;
-
-
+  Printf.fprintf oc "%s\n" message
 
 let main_file verbose mode input_file output_file_opt =
-  
   let log = logger verbose in
   
-  let oc_opt, write = match output_file_opt with
-  | None -> None, print_endline
-  | Some f ->
-      let oc = open_and_clear_file f in (* open the output file *)
-      Some oc, write_in_file oc
+  let oc_opt, write =
+    match output_file_opt with
+    | None -> None, print_endline
+    | Some outf ->
+        let oc = open_and_clear_file outf in
+        Some oc, write_in_file oc
   in
   
   log "info : parsing file...";
   
-  let module D = Driver_file.MakeData (struct
-    let filename = input_file
-  end) in
+  let module D = Driver_file.MakeData (struct let filename = input_file end) in
 
   (* module containing only features and tree data (separation to handle multi vectors files) *)
   let module FTD = MakeFeatureTreeData (D) in
@@ -102,7 +82,7 @@ let main_file verbose mode input_file output_file_opt =
   let module MakeI = MakeDTInputProblem (FTD) in
 
   (* vector treatment function *)
-  let vector_treatment (v:parsed_vector) = 
+  let vector_treatment (v : parsed_vector) =
     let module Input = MakeI (struct let parsed_vector = v end) in
     
     if mode = All then
@@ -124,7 +104,6 @@ let main_file verbose mode input_file output_file_opt =
         begin
           let module FindA = DtAXpFinder (Input) in
           let axp = FindA.findAXp Input.S.all in
-          (* let outA = string_of_int_list (as_list (module Input.S) axp) in *)
           let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
           write ("AXp : " ^ outA);
         end;
@@ -133,7 +112,6 @@ let main_file verbose mode input_file output_file_opt =
         begin
           let module FindC = DtCXpFinder (Input) in
           let cxp = FindC.findCXp Input.S.all in
-          (* let outC = string_of_int_list (as_list (module Input.S) cxp) in *)
           let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
           write ("CXp : " ^ outC);
         end;
@@ -145,27 +123,23 @@ let main_file verbose mode input_file output_file_opt =
   (* run on all vectors *)
   List.iter (fun v -> vector_treatment v; write ";") D.parsed_vectors;
   
-
   log "info : main executed.\n";
   match oc_opt with
-  | Some oc -> close_out oc (* close the output file *)
+  | Some outf -> close_out outf
   | _ -> ()
-;;
 
-
-exception BreakForHelp;;
-
+exception BreakForHelp
 
 let () =
   let verbose = ref false in
   let mode = ref AXp in
-  let input_file = ref "" in  (* not read default value, has to be modified *)
+  let input_file = ref "" in (* not read default value, has to be modified *)
   let input_file_given = ref false in
   let output_file = ref "dt_explanation_result.txt" in (* default value if not given *)
   let output_file_given = ref false in
   try
-    for i=1 to (Array.length Sys.argv - 1) do
-      let a =  Sys.argv.(i) in
+    for i = 1 to Array.length Sys.argv - 1 do
+      let a = Sys.argv.(i) in
       if a = "-h" || a = "-help" || a = "--help" then
         raise BreakForHelp
       else if a = "-v" then
@@ -196,8 +170,11 @@ let () =
           failwith "Error in command line arguments"
         end
     done;
+
     if !input_file_given then 
       main_file !verbose !mode !input_file (if !output_file_given then Some !output_file else None)
     else failwith "no input file given"
-  with BreakForHelp -> print_endline help_string
+
+  with BreakForHelp ->
+    print_endline help_string
 

@@ -5,7 +5,6 @@ from sklearn.tree import _tree
 from utils import flatten_str_list
 
 
-
 def export_tree(dt: tree.DecisionTreeClassifier)-> str:
     """
     Export a `DecisionTree` from `sklearn` module to `dttxt` tree format.
@@ -97,19 +96,6 @@ def export_tree(dt: tree.DecisionTreeClassifier)-> str:
     r.append(")")
 
     return flatten_str_list(r)
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # def comment_node_info(node_index: int, left_child_index: int = None, right_child_index: int = None):
 #     comment =  "(* " + \

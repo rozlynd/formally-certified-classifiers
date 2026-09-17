@@ -1,4 +1,3 @@
-
 def export_vector(v: list, prefix: str = '')-> str:
     """
     Export a vector that would be given to a classifier, to a string format.
@@ -48,5 +47,4 @@ def export_vectors(vs: list[list])-> str:
     r += ")"
 
     return r
-
 

@@ -55,3 +55,4 @@ def find_vectors(tree: tree.DecisionTreeClassifier, nb_features: int):
     aux(node=0, constraints=c0)
 
     return vectors
+

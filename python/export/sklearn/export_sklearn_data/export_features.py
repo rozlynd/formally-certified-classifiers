@@ -1,4 +1,3 @@
-
 def export_features(v: list, feature_names = None)-> str:
     """
     Export, to a string format, features from a vector by looking at the length of the vector.
@@ -42,3 +41,4 @@ def export_features(v: list, feature_names = None)-> str:
     r += ")"
 
     return r
+

@@ -1,27 +1,20 @@
 open Parsing_utils
 
-
 let report_error filename lexbuf msg =
-  let (b,e) = (Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf) in
+  let b, e = Lexing.lexeme_start_p lexbuf, Lexing.lexeme_end_p lexbuf in
   let fc = b.pos_cnum - b.pos_bol + 1 in
   let lc = e.pos_cnum - b.pos_bol + 1 in
   Printf.eprintf "File \"%s\", line %d, characters %d-%d: %s\n" filename b.pos_lnum fc lc msg
-
-
 
 let read_file filename =
   let input = open_in filename in
   let filebuf = Lexing.from_channel input in
   try
     let fs, t, vs = Parser.main Lexer.token filebuf in 
-    (* let v = List.hd(vs) in *)
     let dt = unname_tree t fs in
-    match (type_error dt fs) with
+    match type_error dt fs with
     | None -> fs, dt, vs
-    | Some i -> failwith ("Error : type mismatch between tree (node " ^ (string_of_int i) ^ ") and features declaration.")
-    
-    (* print_tree t;
-    print_vector v *)
+    | Some i -> failwith ("Error : type mismatch between tree (node " ^ string_of_int i ^ ") and features declaration.")
   with
   | Lexer.Error _ ->
       report_error filename filebuf "lexical error (unexpected character).";
@@ -29,9 +22,4 @@ let read_file filename =
   | Parser.Error ->
       report_error filename filebuf "syntax error.";
       exit 2
-
-
-
-
-
 

@@ -2,7 +2,6 @@
 open Parsing_utils
 %}
 
-
 %token <int> IntToken
 %token <float> FloatToken
 %token <string> StringToken
@@ -29,9 +28,6 @@ open Parsing_utils
 
 %token EOF
 
-
-
-
 (* Type de l'attribut synthétisé des non-terminaux *)
 // %type <Parsing_utils.parsed_features> featurelist
 // %type <Parsing_utils.named_parsed_tree> tree
@@ -41,41 +37,10 @@ open Parsing_utils
 %start <Parsing_utils.temp_parsed_file> main
 
 %%
-(*
-  E -> FeatureList Tree Vector
-  
-  FeatureList -> F( Features )
-  Features -> Feature, Features
-  Features -> Feature
-  FeatureList -> *empty*
-  Feature -> bool
-  Feature -> float
-  Feature -> [ StringList ]
-  StringList -> StringToken, StringList
-  StringList -> StringToken
-  StringList -> *empty*
-
-  Tree -> Node, Tree
-  Tree -> Node          (* pour pouvoir ne pas écrire ',' à la fin (car c'est une liste) *)
-  Tree ->  *empty*
-  Node -> N(int, Value, int, int)
-  Node -> L(int)
-  Value -> null
-  Value -> float
-
-  Vector -> V( VectorElements )
-  VectorElements -> VectorElement, VectorElements
-  VectorElements -> *empty*
-  VectorElement -> TrueToken
-  VectorElement -> FalseToken
-  VectorElement -> FloatToken
-
-*)
 
 main: 
   | fs = featurelist t = tree v = vector EOF { fs, t, [v] }
   | fs = featurelist t = tree vs = vector_list EOF { fs, t, vs }
-
 
 featurelist: FeatureListToken LeftParenthesisToken fs = features RightParenthesisToken { fs }
 
@@ -96,8 +61,6 @@ stringlist:
   | /* empty */        { [ ] }
   | s = StringToken    { [s] }
   | s = StringToken ComaToken ss = stringlist    { s::ss }
-
-
 
 tree: TreeToken LeftParenthesisToken ns = nodes RightParenthesisToken { ns }
 
@@ -120,8 +83,6 @@ value:
   | f = FloatToken  { ParsedFloatValue (f) }
   | LeftBracketToken s = stringlist RightBracketToken   { ParsedEnumValue (s) }
 
-
-
 vector_list: VectorListToken LeftParenthesisToken vs=vectors RightParenthesisToken { vs }
 
 vectors:
@@ -140,6 +101,4 @@ vector_element:
   | FalseToken      { ParsedBoolVectorElement(false) }
   | f = FloatToken  { ParsedFloatVectorElement(f) }
   | s = StringToken { ParsedEnumVectorElement(s) }
-
-
 

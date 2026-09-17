@@ -5,14 +5,13 @@
   exception Error of string
 }
 
-
 let digit = ['0'-'9']
 let hex_digit = ['0'-'9' 'a'-'f']
 let int_ = digit+
 let dec_float = '-'? (digit* '.' digit+ | digit+ '.')
 let hex_float = '-'? '0' ('x'|'X') ('0'|'1') '.' hex_digit+ ('p'|'P') ('+'|'-') digit+
 let float_ = dec_float | hex_float
-let next_line =   '\r' | '\n' | "\r\n"
+let next_line = '\r' | '\n' | "\r\n"
 let true_ = "true" | "True" | "TRUE"
 let false_ = "false" | "False" | "FALSE"
 let null_ = "()" | "null" | "None"
@@ -44,13 +43,10 @@ rule token = parse
   | float_ as inum           { FloatToken (float_of_string inum) }
   | '"' (string_ as s) '"'   { StringToken (s) }
   
-  (* | id as text   { IdentToken text } *)
   | eof       { EOF } 
-  | _ { raise (Error ("Unexpected char: "^(Lexing.lexeme lexbuf)^" at "^(string_of_int (Lexing.lexeme_start
-      lexbuf))^"-"^(string_of_int (Lexing.lexeme_end lexbuf)))) }
+  | _ { raise (Error ("Unexpected char: " ^ Lexing.lexeme lexbuf ^ " at " ^ string_of_int (Lexing.lexeme_start lexbuf) ^ "-" ^ string_of_int (Lexing.lexeme_end lexbuf))) }
 
 and comment = parse
   | "*)"      { token lexbuf }
   | _         { comment lexbuf }
-
 
