@@ -66,6 +66,7 @@ let main_file mode fname =
   let module MakeI = MakeDTInputProblem (FTD) in
 
   let process_vector v =
+    write_stdout ("Explaining input = " ^ string_of_vector v);
     let module Input = MakeI (struct let parsed_vector = v end) in
     
     begin
