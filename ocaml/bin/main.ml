@@ -1,3 +1,5 @@
+open Arg
+
 open Rfxp
 open Driver_file
 open Extracted
@@ -31,150 +33,86 @@ let string_of_int_list l =
   | [] -> "[]"
   | x :: l -> aux ("[ " ^ string_of_int x) l
 
-let help_string = 
-  "The program must be called like this :
-  rfxp [-v] [ -a | -c | -ac | (-all) ] <input_file> [<output_file>]  
-    -v    verbose                                                  
-    -a    get one AXp                                              
-    -c    get one CXp                                              
-    -ac   get one AXp and one CXp                                  
-    (-all  get all AXp and all CXp (caution : AXp and CXp are mixed) (not available yet))
-    
-    -h, -help, --help   print this help message
+type mode = AXp | CXp | All
 
-    <input_file>    the file containing Decision Tree informations.
-    <output_file>   the file to write the results."
+let usage_msg = "rfxp [-v] [-axp | -cxp | -all] FILES..."
 
-let logger (verbose : bool) (s : string) =
-  if verbose then print_string s
+let verbose = ref false
+let mode = ref AXp
+let fnames = ref []
 
-(* enum type giving the research goal. *)
-type mode = 
-  | AXp
-  | CXp
-  | Both
-  | All
+let set_mode m = fun () -> mode := m
+let add_fname = fun f -> fnames := f :: !fnames
 
-let open_and_clear_file filename =
-  open_out_gen [Open_wronly; Open_creat] 0o666 filename
+let spec = [
+  "-v",   Set verbose,          "Set verbose output";
+  "-axp", Unit (set_mode AXp),  "Extract one AXp (default)";
+  "-cxp", Unit (set_mode CXp),  "Extract one CXp";
+  "-all", Unit (set_mode All),  "Extract all AXps and CXp"
+]
 
-let write_in_file oc message = 
-  Printf.fprintf oc "%s\n" message
+let log s =
+  if !verbose then print_endline s
 
-let main_file verbose mode input_file output_file_opt =
-  let log = logger verbose in
+let main_file mode fname =
+  log ("info : parsing file '" ^ fname ^ "'");
+
+  let write_stdout = print_endline in
+  let report_axp s = write_stdout ("AXp: " ^ s) in
+  let report_cxp s = write_stdout ("CXp: " ^ s) in
   
-  let oc_opt, write =
-    match output_file_opt with
-    | None -> None, print_endline
-    | Some outf ->
-        let oc = open_and_clear_file outf in
-        Some oc, write_in_file oc
-  in
-  
-  log "info : parsing file...";
-  
-  let module D = Driver_file.MakeData (struct let filename = input_file end) in
-
-  (* module containing only features and tree data (separation to handle multi vectors files) *)
+  let module D = Driver_file.MakeData (struct let filename = fname end) in
   let module FTD = MakeFeatureTreeData (D) in
-
   let module MakeI = MakeDTInputProblem (FTD) in
 
-  (* vector treatment function *)
-  let vector_treatment (v : parsed_vector) =
+  let process_vector v =
     let module Input = MakeI (struct let parsed_vector = v end) in
     
-    if mode = All then
-      begin
-        let module Solver = MakeSatSolver in
-        let module Iter = MakeIterator (Input.S) (Solver) in
-        let module Enum = MakeEnumerator (Input) (Iter) (DtWCXpChecker (Input)) (DtCXpFinder (Input)) (DtAXpFinder (Input)) in
-        let f' x = match x with
-          | Enum.Xp.Coq_isAXp y -> "axp : " ^ string_of_int_list (as_list (module Input.S) y)
-          | Enum.Xp.Coq_isCXp y -> "cxp : " ^ string_of_int_list (as_list (module Input.S) y)
-        in 
-        let f x = write (f' x) in
-        iter f Enum.get Enum.record Enum.init 0;
-        print_endline "termine au bon endroit"
-      end
-    else begin
+    begin
+      match mode with
+      | All ->
+          begin
+            let module Solver = MakeSatSolver in
+            let module Iter = MakeIterator (Input.S) (Solver) in
+            let module AXpFind = DtAXpFinder (Input) in
+            let module CXpFind = DtCXpFinder (Input) in
+            let module WCXpCheck = DtWCXpChecker (Input) in
+            let module Enum = MakeEnumerator (Input) (Iter) (WCXpCheck) (CXpFind) (AXpFind) in
 
-      if mode = AXp || mode = Both then
-        begin
-          let module FindA = DtAXpFinder (Input) in
-          let axp = FindA.findAXp Input.S.all in
-          let outA = string_of_features_with_names (as_list (module Input.S) axp) D.features in
-          write ("AXp : " ^ outA);
-        end;
-        
-      if mode = CXp || mode = Both then
-        begin
-          let module FindC = DtCXpFinder (Input) in
-          let cxp = FindC.findCXp Input.S.all in
-          let outC = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
-          write ("CXp : " ^ outC);
-        end;
+            let report_xp x =
+              match x with
+              | Enum.Xp.Coq_isAXp x -> report_axp (string_of_int_list (as_list (module Input.S) x))
+              | Enum.Xp.Coq_isCXp x -> report_cxp (string_of_int_list (as_list (module Input.S) x))
+            in 
+            iter report_xp Enum.get Enum.record Enum.init 0
+          end
+
+      | AXp ->
+          begin
+            let module Find = DtAXpFinder (Input) in
+
+            let axp = Find.findAXp Input.S.all in
+            let out = string_of_features_with_names (as_list (module Input.S) axp) D.features in
+            report_axp out
+          end
+
+      | CXp ->
+          begin
+            let module Find = DtCXpFinder (Input) in
+
+            let cxp = Find.findCXp Input.S.all in
+            let out = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
+            report_cxp out
+          end
     end;
-    
-    write ";";
   in
 
   (* run on all vectors *)
-  List.iter (fun v -> vector_treatment v; write ";") D.parsed_vectors;
+  List.iter process_vector D.parsed_vectors;
   
-  log "info : main executed.\n";
-  match oc_opt with
-  | Some outf -> close_out outf
-  | _ -> ()
-
-exception BreakForHelp
+  log "info : done"
 
 let () =
-  let verbose = ref false in
-  let mode = ref AXp in
-  let input_file = ref "" in (* not read default value, has to be modified *)
-  let input_file_given = ref false in
-  let output_file = ref "dt_explanation_result.txt" in (* default value if not given *)
-  let output_file_given = ref false in
-  try
-    for i = 1 to Array.length Sys.argv - 1 do
-      let a = Sys.argv.(i) in
-      if a = "-h" || a = "-help" || a = "--help" then
-        raise BreakForHelp
-      else if a = "-v" then
-        verbose := true
-      else if a = "-a" then
-        mode := AXp
-      else if a = "-c" then
-        mode := CXp
-      else if a = "-ac" then
-        mode := Both
-      else if a = "-all" then
-        mode := All
-      else if a.[0] = '-' then
-        failwith ("Error : unknown parameter " ^ a)
-      else if (not !input_file_given) then
-        begin 
-          input_file_given := true; 
-          input_file := a
-        end
-      else if (not !output_file_given) then
-        begin 
-          output_file_given := true; 
-          output_file := a
-        end
-      else 
-        begin
-          print_endline ("Error in command line arguments.\n" ^ help_string);
-          failwith "Error in command line arguments"
-        end
-    done;
-
-    if !input_file_given then 
-      main_file !verbose !mode !input_file (if !output_file_given then Some !output_file else None)
-    else failwith "no input file given"
-
-  with BreakForHelp ->
-    print_endline help_string
+  parse spec add_fname usage_msg;
+  List.iter (main_file !mode) !fnames
 
