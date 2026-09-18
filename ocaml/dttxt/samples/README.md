@@ -1,4 +1,4 @@
-# Origin of datasets
+# Benchmark Summary
 
 | file              | origin                                     | nb features  | nb nodes in DT |
 | ----------------- | ------------------------------------------ | ------------ | -------------- |
@@ -8,5 +8,4 @@
 | wine.txt          | Python sklearn.datasets.load_wine          | 13           | 21             |
 | covtype.txt       | Python sklearn.datasets.fetch_covtype      | 54           | 51769          |
 | kddcup99.txt      | Python sklearn.datasets.fetch_kddcup99     | 118          | 483            |
-
 
