@@ -99,10 +99,15 @@ let main_file mode fname =
       | CXp ->
           begin
             let module Find = DtCXpFinder (Input) in
+            let module WCXpCheck = DtWCXpChecker (Input) in
 
-            let cxp = Find.findCXp Input.S.all in
-            let out = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
-            report_cxp out
+            if WCXpCheck.checkWCXp Input.S.all then
+              let cxp = Find.findCXp Input.S.all in
+              let out = string_of_features_with_names (as_list (module Input.S) cxp) D.features in
+              report_cxp out
+
+            else
+              write_stdout "No CXps! (constant model)"
           end
     end;
   in
