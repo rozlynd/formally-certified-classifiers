@@ -7,7 +7,7 @@ open DTXp
 open Utils
 open Dttxt.Parsing_utils
 open Explainers
-open Driver_enumerator
+open SatDriver
 
 let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
   let l = S.elements e in
