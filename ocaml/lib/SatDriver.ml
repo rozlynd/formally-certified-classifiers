@@ -57,18 +57,6 @@ module MakeSatSolver : Sat.SatSolver =
     x
  end
 
-let rec string_of_cnf cnf = match cnf with
-  | [] -> ""
-  | t :: q -> string_of_clause t ^ "\n" ^ string_of_cnf q
-
-and string_of_clause c = match c with
-  | [] -> ""
-  | t :: q -> string_of_literal t ^ ";" ^ string_of_clause q
-
-and string_of_literal l = match l with
-  | i, Coq_pos -> "+" ^ string_of_int (to_nat 0 i)
-  | i, Coq_neg -> "-" ^ string_of_int (to_nat 0 i)
-
 let rec iter f get record st cpt =
   let x = get st in
   print_endline ("iter n°" ^ string_of_int cpt);
