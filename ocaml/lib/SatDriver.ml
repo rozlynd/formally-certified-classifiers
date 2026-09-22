@@ -4,25 +4,20 @@ open Utils
 open Satwrapper
 open Explainers
 
-(** val sat_setup : 
-    solver -> CNF.t -> unit 
-    Add each constraint encoded in the CNF h to the solver **)
-
-let rec sat_setup solver l =
-  (** aux converts a clause in our format to one that can be transformed into a suitable array for the solver **)
-  let rec aux c = 
-    match c with
-    | [] -> []
-    | (n, pol) :: q ->
-        match pol with
-      | Coq_pos -> Po (to_nat 0 n) :: aux q
-      | Coq_neg -> Ne (to_nat 0 n) :: aux q
+(** clause_to_int_array : fin clause -> int literal array *)
+let clause_to_int_literal_array c =
+  let to_literal (n, pol) =
+    match pol with
+    | Coq_pos -> Po (to_nat 0 n)
+    | Coq_neg -> Ne (to_nat 0 n)
   in
-  match l with
-  | [] -> ()
-  | t::q ->
-      solver#add_clause_array (Array.of_list (aux t)); (* Each clause is added, an array corresponds to the disjunction of its elements *)
-      sat_setup solver q
+  Array.of_list (List.map to_literal c)
+
+(** val sat_setup : int -> CNF.t -> solver -> unit *)
+let sat_setup n f solver =
+  (* add a clause [X \/ not X] for every feature [X] because idk how else to set the variable count *)
+  List.iter solver#add_clause_array (List.init n (fun i -> Array.of_list [ Po i; Ne i ]));
+  List.iter solver#add_clause_array (List.map clause_to_int_literal_array f)
 
 module MakeSatSolver : Sat.SatSolver =
  struct
@@ -48,7 +43,7 @@ module MakeSatSolver : Sat.SatSolver =
   let solve n cnf = 
     let timetable = Timing.initial_timetable () in 
     let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) (Some timetable) in
-    sat_setup solver cnf;
+    sat_setup n cnf solver;
     print_endline ("nb clauses : " ^ string_of_int solver#clause_count);
     print_endline ("nb vars : " ^ string_of_int solver#variable_count);
     solver#solve;
