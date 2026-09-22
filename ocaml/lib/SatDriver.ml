@@ -57,16 +57,3 @@ module MakeSatSolver : Sat.SatSolver =
     x
  end
 
-let rec iter f get record st cpt =
-  let x = get st in
-  print_endline ("iter n°" ^ string_of_int cpt);
-  match x with
-  | None -> ()
-  | Some y -> 
-    begin
-      f y;
-      let next_st = record y st in
-      if cpt > 20 then failwith "too much iterations"
-      else iter f get record next_st (cpt+1)
-    end
-

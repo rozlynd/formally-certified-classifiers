@@ -85,6 +85,21 @@ let main_file mode fname =
               | Enum.Xp.Coq_isAXp x -> report_axp (string_of_int_list (as_list (module Input.S) x))
               | Enum.Xp.Coq_isCXp x -> report_cxp (string_of_int_list (as_list (module Input.S) x))
             in 
+
+            let rec iter f get record st cpt =
+              let x = get st in
+              print_endline ("iter n°" ^ string_of_int cpt);
+              match x with
+              | None -> ()
+              | Some y ->
+                begin
+                  f y;
+                  let next_st = record y st in
+                  if cpt > 20 then failwith "too much iterations"
+                  else iter f get record next_st (cpt+1)
+                end
+            in
+
             iter report_xp Enum.get Enum.record Enum.init 0
           end
 
