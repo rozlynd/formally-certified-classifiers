@@ -165,4 +165,4 @@ module MakeEnumerator :
  functor (Chk:WCXpChecker with module E = E_) ->
  functor (Shrink:CXpFinder with module E = E_) ->
  functor (Grow:AXpFinder with module E = E_) ->
- EnumeratorBase with module E = E_
+ EnumeratorBase with module E = E_ with type s = It.s

@@ -375,7 +375,7 @@ Module MakeEnumerator   (Import E_ : InputProblem)
                         (Chk : WCXpChecker with Module E := E_)
                         (Shrink : CXpFinder with Module E := E_)
                         (Grow : AXpFinder with Module E := E_)
-                    : EnumeratorBase    with Module E := E_.
+                    : EnumeratorBase    with Module E := E_ with Definition s := It.s.
 
     Module E := E_.
     Module Import Xp := EnumeratorsDefs E.
