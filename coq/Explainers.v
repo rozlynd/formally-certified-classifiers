@@ -385,8 +385,8 @@ Module MakeEnumerator   (Import E_ : InputProblem)
 
     Definition record (X : Xp) (st : s) :=
         match X with
-        | isAXp X => It.block_up X st
-        | isCXp X => It.block_down X st
+        | isAXp X => It.block_down (S.compl X) st
+        | isCXp X => It.block_up X st
         end.
 
     Definition get (st : s) :=

@@ -301,8 +301,8 @@ module MakeEnumerator =
 
   let record x st =
     match x with
-    | Xp.Coq_isAXp x0 -> It.block_up x0 st
-    | Xp.Coq_isCXp x0 -> It.block_down x0 st
+    | Xp.Coq_isAXp x0 -> It.block_down (E_.S.compl x0) st
+    | Xp.Coq_isCXp x0 -> It.block_up x0 st
 
   (** val get : s -> Xp.coq_Xp option **)
 
