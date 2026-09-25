@@ -5,24 +5,9 @@ open Rfxp
 open Driver_file
 open Extracted
 open DTXp
-open Utils
-open Dttxt.Parsing_utils
 open Explainers
 open SatDriver
-
-let as_list (type t_) (module S : FinSet with type t = t_) (e : S.t) =
-  let l = S.elements e in
-  List.map (fun f -> Extracted.Utils.to_nat S.n f) l
-
-let string_of_int_list l =
-  let rec aux acc l =
-    match l with
-    | [] -> acc ^ " ]"
-    | x :: l -> aux (acc ^ ", " ^ string_of_int x) l
-  in
-  match l with
-  | [] -> "[]"
-  | x :: l -> aux ("[ " ^ string_of_int x) l
+open Pretty
 
 type mode = AXp | CXp | All
 
@@ -57,10 +42,17 @@ let error = log Error
 
 (* MAIN *)
 
-let report_axp x = printf "AXp: %s@." (string_of_int_list x)
-let report_cxp x = printf "CXp: %s@." (string_of_int_list x)
+let process_input_problem mode (module Input : DTInputProblem with type K.t = string) =
+  fprintf str_formatter "DT: %a@." (pp_print_dt pp_print_string Input.fs) Input.k;
+  info (flush_str_formatter ());
+
+  fprintf str_formatter "Vector: %a@." pp_print_feature_vec Input.v;
+  info (flush_str_formatter ());
+
+  let pp_print_xp = pp_print_finset (module Input.S) in
+  let report_axp xp = printf "AXp: %a@." pp_print_xp xp in
+  let report_cxp xp = printf "CXp: %a@." pp_print_xp xp in
   
-let process_input_problem mode (module Input : DTInputProblem) =
   match mode with
   | All ->
       begin
@@ -71,10 +63,10 @@ let process_input_problem mode (module Input : DTInputProblem) =
         let module WCXpCheck = DtWCXpChecker (Input) in
         let module Enum = MakeEnumerator (Input) (Iter) (WCXpCheck) (CXpFind) (AXpFind) in
 
-        let report_xp x =
-          match x with
-          | Enum.Xp.Coq_isAXp x -> report_axp (as_list (module Input.S) x)
-          | Enum.Xp.Coq_isCXp x -> report_cxp (as_list (module Input.S) x)
+        let report_xp xp =
+          match xp with
+          | Enum.Xp.Coq_isAXp xp -> report_axp xp
+          | Enum.Xp.Coq_isCXp xp -> report_cxp xp
         in
 
         let rec iter f get record st =
@@ -97,8 +89,7 @@ let process_input_problem mode (module Input : DTInputProblem) =
         let module Find = DtAXpFinder (Input) in
 
         let axp = Find.findAXp Input.S.all in
-        let out = as_list (module Input.S) axp in
-        report_axp out
+        report_axp axp
       end
 
   | CXp ->
@@ -108,8 +99,7 @@ let process_input_problem mode (module Input : DTInputProblem) =
 
         if WCXpCheck.checkWCXp Input.S.all then
           let cxp = Find.findCXp Input.S.all in
-          let out = as_list (module Input.S) cxp in
-          report_cxp out
+          report_cxp cxp
 
         else
           error "No CXps! (constant model)"
@@ -123,7 +113,6 @@ let main_file mode fname =
   let module MakeI = MakeDTInputProblem (FTD) in
 
   let process_vector v =
-    printf "Explaining input = %s@." (string_of_vector v);
     let module Input = MakeI (struct let parsed_vector = v end) in
     process_input_problem mode (module Input)
   in

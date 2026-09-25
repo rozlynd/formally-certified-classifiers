@@ -44,8 +44,8 @@ module MakeSatSolver : Sat.SatSolver =
     let timetable = Timing.initial_timetable () in 
     let solver = new Satwrapper.satWrapper (Satsolvers.get_default ()) (Some timetable) in
     sat_setup n cnf solver;
-    print_endline ("nb clauses : " ^ string_of_int solver#clause_count);
-    print_endline ("nb vars : " ^ string_of_int solver#variable_count);
+    (*print_endline ("nb clauses : " ^ string_of_int solver#clause_count);*)
+    (*print_endline ("nb vars : " ^ string_of_int solver#variable_count);*)
     solver#solve;
     let x = sat_result solver n in
     solver#dispose;
