@@ -16,7 +16,7 @@ let true_ = "true" | "True" | "TRUE"
 let false_ = "false" | "False" | "FALSE"
 let null_ = "()" | "null" | "None"
 let alphanum = ['a'-'z' 'A'-'Z' '0'-'9']
-let string_ = (alphanum | [' ' '-' '_' '(' ')'])* 
+let string_ = (alphanum | [' ' '-' '_' '(' ')' '/'])*
 
 rule token = parse
   | [' ' '\t']   { token lexbuf } (* ignore whitespaces and tabs *)
