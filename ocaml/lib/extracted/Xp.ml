@@ -3,6 +3,8 @@ open Equalities
 open Features
 open Utils
 
+type __ = Obj.t
+
 module type FeatureSig =
  sig
   val n : int
@@ -108,4 +110,17 @@ module type InputProblem =
 
   module S :
    FinSet
+ end
+
+module ExplanationsDefs =
+ functor (E:InputProblem) ->
+ struct
+ end
+
+module ExplanationsFacts =
+ functor (E:InputProblem) ->
+ struct
+  module Xp = ExplanationsDefs(E)
+
+  module P = FinSetProperties(E.S)
  end

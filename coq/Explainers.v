@@ -29,59 +29,39 @@ End EnumeratorsDefs.
 
 (* Find minimal explanations from a seed (eliminate redundant features) *)
 
-Module Type AXpFinderBaseOn (Import E : InputProblem).
+Module Type AXpFinderOn (Import E : InputProblem).
     Module Import Xp := ExplainersDefs E.
 
     Parameter findAXp : S.t -> S.t.
 
-End AXpFinderBaseOn.
-
-Module Type AXpFinderOn (Import E : InputProblem) <: AXpFinderBaseOn E.
-    Include AXpFinderBaseOn E.
-
     Axiom findAXpSound :
-        forall X, Xp.WAXp X -> Xp.AXp (findAXp X).
+        forall X, WAXp X -> AXp (findAXp X).
 
     Axiom findAXpSane :
         forall X, S.Subset (findAXp X) X.
 
 End AXpFinderOn.
 
-Module Type AXpFinderBase.
-    Declare Module E : InputProblem.
-    Include AXpFinderBaseOn E.
-End AXpFinderBase.
-
-Module Type AXpFinder <: AXpFinderBase.
+Module Type AXpFinder.
     Declare Module E : InputProblem.
     Include AXpFinderOn E.
 End AXpFinder.
 
 
-Module Type CXpFinderBaseOn (Import E : InputProblem).
+Module Type CXpFinderOn (Import E : InputProblem).
     Module Import Xp := ExplainersDefs E.
 
     Parameter findCXp : S.t -> S.t.
 
-End CXpFinderBaseOn.
-
-Module Type CXpFinderOn (Import E : InputProblem) <: CXpFinderBaseOn E.
-    Include CXpFinderBaseOn E.
-
     Axiom findCXpSound :
-        forall X, Xp.WCXp X -> Xp.CXp (findCXp X).
+        forall X, WCXp X -> CXp (findCXp X).
 
     Axiom findCXpSane :
         forall X, S.Subset (findCXp X) X.
 
 End CXpFinderOn.
 
-Module Type CXpFinderBase.
-    Declare Module E : InputProblem.
-    Include CXpFinderBaseOn E.
-End CXpFinderBase.
-
-Module Type CXpFinder <: CXpFinderBase.
+Module Type CXpFinder.
     Declare Module E : InputProblem.
     Include CXpFinderOn E.
 End CXpFinder.
@@ -89,27 +69,17 @@ End CXpFinder.
 
 (* Decide if a set is a WCXp *)
 
-Module Type WCXpCheckerBaseOn (Import E : InputProblem).
+Module Type WCXpCheckerOn (Import E : InputProblem).
     Module Import Xp := ExplainersDefs E.
 
     Parameter checkWCXp : S.t -> bool.
 
-End WCXpCheckerBaseOn.
-
-Module Type WCXpCheckerOn (Import E : InputProblem) <: WCXpCheckerBaseOn E.
-    Include WCXpCheckerBaseOn E.
-
     Axiom checkWCXpSound :
-        forall X, Bool.reflect (Xp.WCXp X) (checkWCXp X).
+        forall X, Bool.reflect (WCXp X) (checkWCXp X).
 
 End WCXpCheckerOn.
 
-Module Type WCXpCheckerBase.
-    Declare Module E : InputProblem.
-    Include WCXpCheckerBaseOn E.
-End WCXpCheckerBase.
-
-Module Type WCXpChecker <: WCXpCheckerBase.
+Module Type WCXpChecker.
     Declare Module E : InputProblem.
     Include WCXpCheckerOn E.
 End WCXpChecker.
@@ -117,23 +87,17 @@ End WCXpChecker.
 
 (* Default implementations of finders given a WCXp checker *)
 
-Module AXpIterativeFinderBaseOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: AXpFinderBaseOn E.
+Module AXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: AXpFinderOn E.
     Module Import Xp := ExplainersDefs E.
 
     Local Definition checkWAXp X := negb (Chk.checkWCXp (S.compl X)).
 
     Definition findAXp := S.shrink checkWAXp.
 
-End AXpIterativeFinderBaseOn.
-
-Module AXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) : AXpFinderOn E.
-    Module Impl := AXpIterativeFinderBaseOn E Chk.
-    Include Impl.
-
     Module XpFacts := ExplanationsFacts E.
 
     Lemma checkWAXp_reflect :
-        forall X, Bool.reflect (Xp.WAXp X) (checkWAXp X).
+        forall X, Bool.reflect (WAXp X) (checkWAXp X).
     Proof.
         intros X; unfold checkWAXp; destruct (Chk.checkWCXpSound (S.compl X)); constructor.
         -   now apply XpFacts.XpDual_uncompl_of_WCXp_is_not_WAXp.
@@ -141,7 +105,7 @@ Module AXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Mo
     Qed.
 
     Lemma findAXp_isWAXp :
-        forall X, Xp.WAXp X -> Xp.WAXp (findAXp X).
+        forall X, WAXp X -> WAXp (findAXp X).
     Proof.
         intros X H;
         apply (Bool.reflect_iff _ _ (checkWAXp_reflect X)),
@@ -150,7 +114,7 @@ Module AXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Mo
     Qed.
 
     Theorem findAXpSound :
-        forall X, Xp.WAXp X -> Xp.AXp (findAXp X).
+        forall X, WAXp X -> AXp (findAXp X).
     Proof.
         intros X H; unfold findAXp; split.
         -   now apply findAXp_isWAXp.
@@ -175,21 +139,15 @@ Module AXpIterativeFinder (E_ : InputProblem) (Chk : WCXpChecker with Module E :
 End AXpIterativeFinder.
 
 
-Module CXpIterativeFinderBaseOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: CXpFinderBaseOn E.
+Module CXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: CXpFinderOn E.
     Module Import Xp := ExplainersDefs E.
 
     Definition findCXp := S.shrink Chk.checkWCXp.
 
-End CXpIterativeFinderBaseOn.
-
-Module CXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) : CXpFinderOn E.
-    Module Impl := CXpIterativeFinderBaseOn E Chk.
-    Include Impl.
-
     Module XpFacts := ExplanationsFacts E.
 
     Lemma findCXp_isWCXp :
-        forall X, Xp.WCXp X -> Xp.WCXp (findCXp X).
+        forall X, WCXp X -> WCXp (findCXp X).
     Proof.
         intros X H;
         apply (Bool.reflect_iff _ _ (Chk.checkWCXpSound X)),
@@ -198,7 +156,7 @@ Module CXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Mo
     Qed.
 
     Theorem findCXpSound :
-        forall X, Xp.WCXp X -> Xp.CXp (findCXp X).
+        forall X, WCXp X -> CXp (findCXp X).
     Proof.
         intros X H; unfold findCXp; split.
         -   now apply findCXp_isWCXp.
@@ -225,7 +183,7 @@ End CXpIterativeFinder.
 
 (* Enumerate explanations *)
 
-Module Type EnumeratorBaseOn (Import E : InputProblem).
+Module Type EnumeratorOn (Import E : InputProblem).
     Module Import Xp := EnumeratorsDefs E.
 
     Parameter s : Type.
@@ -235,36 +193,25 @@ Module Type EnumeratorBaseOn (Import E : InputProblem).
 
     Parameter get : s -> option Xp.
 
-End EnumeratorBaseOn.
-
-Module Type EnumeratorOn (Import E : InputProblem) <: EnumeratorBaseOn E.
-    Include EnumeratorBaseOn E.
-    Import Xp.
-
     Inductive IN (X : Xp) : s -> Prop :=
     | IN_last (st : s) : IN X (record X st)
     | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
 
     Axiom getSound :
-        forall s X, get s = Some X -> Xp.isXp X /\ ~ IN X s.
+        forall s X, get s = Some X -> isXp X /\ ~ IN X s.
 
     Axiom getComplete :
-        forall s X, get s = None -> Xp.isXp X -> IN X s.
+        forall s X, get s = None -> isXp X -> IN X s.
 
 End EnumeratorOn.
 
-Module Type EnumeratorBase.
-    Declare Module E : InputProblem.
-    Include EnumeratorBaseOn E.
-End EnumeratorBase.
-
-Module Type Enumerator <: EnumeratorBase.
+Module Type Enumerator.
     Declare Module E : InputProblem.
     Include EnumeratorOn E.
 End Enumerator.
 
 
-Module Type IteratorBaseOn (S : FinSet).
+Module Type IteratorOn (S : FinSet).
 
     Parameter s : Type.
 
@@ -276,11 +223,6 @@ Module Type IteratorBaseOn (S : FinSet).
 
     Parameter block_down : S.t -> s -> s.
 
-End IteratorBaseOn.
-
-Module Type IteratorOn (S : FinSet).
-    Include IteratorBaseOn S.
-
     Axiom pick_block_up :
         forall X Y st, pick (block_up X st) = Some Y -> ~ S.Subset X Y.
 
@@ -289,12 +231,7 @@ Module Type IteratorOn (S : FinSet).
 
 End IteratorOn.
 
-Module Type IteratorBase.
-    Declare Module S : FinSet.
-    Include IteratorBaseOn S.
-End IteratorBase.
-
-Module Type Iterator <: IteratorBase.
+Module Type Iterator.
     Declare Module S : FinSet.
     Include IteratorOn S.
 End Iterator.
@@ -375,7 +312,7 @@ Module MakeEnumerator   (Import E_ : InputProblem)
                         (Chk : WCXpChecker with Module E := E_)
                         (Shrink : CXpFinder with Module E := E_)
                         (Grow : AXpFinder with Module E := E_)
-                    : EnumeratorBase    with Module E := E_ with Definition s := It.s.
+                    : Enumerator with Module E := E_ with Definition s := It.s.
 
     Module E := E_.
     Module Import Xp := EnumeratorsDefs E.
@@ -398,5 +335,17 @@ Module MakeEnumerator   (Import E_ : InputProblem)
             | false => Some (isAXp (Grow.findAXp (S.compl X)))
             end
         end.
+
+    Inductive IN (X : Xp) : s -> Prop :=
+    | IN_last (st : s) : IN X (record X st)
+    | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
+
+    Theorem getSound :
+        forall s X, get s = Some X -> isXp X /\ ~ IN X s.
+    Admitted.
+
+    Theorem getComplete :
+        forall s X, get s = None -> isXp X -> IN X s.
+    Admitted.
 
 End MakeEnumerator.

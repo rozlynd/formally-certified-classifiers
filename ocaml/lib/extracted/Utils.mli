@@ -3,6 +3,7 @@ open Datatypes
 open List0
 open MSetInterface
 open MSetList
+open MSetProperties
 open Orders
 open OrdersEx
 open PeanoNat
@@ -187,3 +188,128 @@ module MakeFinSetOn :
 module MakeFinSet :
  functor (S:FinSig) ->
  FinSet
+
+module FinSetProperties :
+ functor (FS:FinSet) ->
+ sig
+  module P :
+   sig
+    module ME :
+     sig
+      module OrderTac :
+       sig
+        module OTF :
+         sig
+          type t = fin
+
+          val compare : fin -> fin -> comparison
+
+          val eq_dec : fin -> fin -> bool
+         end
+
+        module TO :
+         sig
+          type t = fin
+
+          val compare : fin -> fin -> comparison
+
+          val eq_dec : fin -> fin -> bool
+         end
+       end
+
+      val eq_dec : fin -> fin -> bool
+
+      val lt_dec : fin -> fin -> bool
+
+      val eqb : fin -> fin -> bool
+     end
+
+    module ML :
+     sig
+     end
+
+    module P :
+     sig
+      module Dec :
+       sig
+        module F :
+         sig
+          val eqb : fin -> fin -> bool
+         end
+
+        module MSetLogicalFacts :
+         sig
+         end
+
+        module MSetDecideAuxiliary :
+         sig
+         end
+
+        module MSetDecideTestCases :
+         sig
+         end
+       end
+
+      module FM :
+       sig
+        val eqb : fin -> fin -> bool
+       end
+
+      val coq_In_dec : FS.elt -> FS.t -> bool
+
+      val of_list : FS.elt list -> FS.t
+
+      val to_list : FS.t -> FS.elt list
+
+      val fold_rec :
+        (FS.elt -> 'a1 -> 'a1) -> 'a1 -> FS.t -> (FS.t -> __ -> 'a2) ->
+        (FS.elt -> 'a1 -> FS.t -> FS.t -> __ -> __ -> __ -> 'a2 -> 'a2) -> 'a2
+
+      val fold_rec_bis :
+        (FS.elt -> 'a1 -> 'a1) -> 'a1 -> FS.t -> (FS.t -> FS.t -> 'a1 -> __
+        -> 'a2 -> 'a2) -> 'a2 -> (FS.elt -> 'a1 -> FS.t -> __ -> __ -> 'a2 ->
+        'a2) -> 'a2
+
+      val fold_rec_nodep :
+        (FS.elt -> 'a1 -> 'a1) -> 'a1 -> FS.t -> 'a2 -> (FS.elt -> 'a1 -> __
+        -> 'a2 -> 'a2) -> 'a2
+
+      val fold_rec_weak :
+        (FS.elt -> 'a1 -> 'a1) -> 'a1 -> (FS.t -> FS.t -> 'a1 -> __ -> 'a2 ->
+        'a2) -> 'a2 -> (FS.elt -> 'a1 -> FS.t -> __ -> 'a2 -> 'a2) -> FS.t ->
+        'a2
+
+      val fold_rel :
+        (FS.elt -> 'a1 -> 'a1) -> (FS.elt -> 'a2 -> 'a2) -> 'a1 -> 'a2 ->
+        FS.t -> 'a3 -> (FS.elt -> 'a1 -> 'a2 -> __ -> 'a3 -> 'a3) -> 'a3
+
+      val set_induction :
+        (FS.t -> __ -> 'a1) -> (FS.t -> FS.t -> 'a1 -> FS.elt -> __ -> __ ->
+        'a1) -> FS.t -> 'a1
+
+      val set_induction_bis :
+        (FS.t -> FS.t -> __ -> 'a1 -> 'a1) -> 'a1 -> (FS.elt -> FS.t -> __ ->
+        'a1 -> 'a1) -> FS.t -> 'a1
+
+      val cardinal_inv_2 : FS.t -> int -> FS.elt
+
+      val cardinal_inv_2b : FS.t -> FS.elt
+     end
+
+    val gtb : fin -> fin -> bool
+
+    val leb : fin -> fin -> bool
+
+    val elements_lt : fin -> FS.t -> fin list
+
+    val elements_ge : fin -> FS.t -> fin list
+
+    val set_induction_max :
+      (FS.t -> __ -> 'a1) -> (FS.t -> FS.t -> 'a1 -> fin -> __ -> __ -> 'a1)
+      -> FS.t -> 'a1
+
+    val set_induction_min :
+      (FS.t -> __ -> 'a1) -> (FS.t -> FS.t -> 'a1 -> fin -> __ -> __ -> 'a1)
+      -> FS.t -> 'a1
+   end
+ end

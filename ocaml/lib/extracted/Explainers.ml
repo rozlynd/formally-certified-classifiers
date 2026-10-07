@@ -62,7 +62,7 @@ module type WCXpChecker =
   val checkWCXpSound : E.S.t -> reflect
  end
 
-module AXpIterativeFinderBaseOn =
+module AXpIterativeFinderOn =
  functor (E:InputProblem) ->
  functor (Chk:WCXpChecker with module E = E) ->
  struct
@@ -77,35 +77,16 @@ module AXpIterativeFinderBaseOn =
 
   let findAXp =
     E.S.shrink checkWAXp
- end
 
-module AXpIterativeFinderOn =
- functor (E:InputProblem) ->
- functor (Chk:WCXpChecker with module E = E) ->
- struct
-  module Impl = AXpIterativeFinderBaseOn(E)(Chk)
+  module XpFacts = ExplanationsFacts(E)
 
-  module Xp = Impl.Xp
+  (** val checkWAXp_reflect : E.S.t -> reflect **)
 
-  (** val checkWAXp : E.S.t -> bool **)
-
-  let checkWAXp x =
-    negb (Chk.checkWCXp (E.S.compl x))
-
-  (** val findAXp : E.S.t -> E.S.t **)
-
-  let findAXp =
-    E.S.shrink checkWAXp
-
-  (** val findAXpSound : __ **)
-
-  let findAXpSound =
-    __
-
-  (** val findAXpSane : __ **)
-
-  let findAXpSane =
-    __
+  let checkWAXp_reflect x =
+    let r = Chk.checkWCXpSound (E.S.compl x) in
+    (match r with
+     | ReflectT -> ReflectF
+     | ReflectF -> ReflectT)
  end
 
 module AXpIterativeFinder =
@@ -118,10 +99,15 @@ module AXpIterativeFinder =
 
   module Xp = Impl.Xp
 
+  (** val checkWAXp : E_.S.t -> bool **)
+
+  let checkWAXp x =
+    negb (Chk.checkWCXp (E_.S.compl x))
+
   (** val findAXp : E_.S.t -> E_.S.t **)
 
   let findAXp =
-    Impl.findAXp
+    E_.S.shrink checkWAXp
 
   (** val findAXpSound : __ **)
 
@@ -134,7 +120,7 @@ module AXpIterativeFinder =
     __
  end
 
-module CXpIterativeFinderBaseOn =
+module CXpIterativeFinderOn =
  functor (E:InputProblem) ->
  functor (Chk:WCXpChecker with module E = E) ->
  struct
@@ -144,30 +130,8 @@ module CXpIterativeFinderBaseOn =
 
   let findCXp =
     E.S.shrink Chk.checkWCXp
- end
 
-module CXpIterativeFinderOn =
- functor (E:InputProblem) ->
- functor (Chk:WCXpChecker with module E = E) ->
- struct
-  module Impl = CXpIterativeFinderBaseOn(E)(Chk)
-
-  module Xp = Impl.Xp
-
-  (** val findCXp : E.S.t -> E.S.t **)
-
-  let findCXp =
-    E.S.shrink Chk.checkWCXp
-
-  (** val findCXpSound : __ **)
-
-  let findCXpSound =
-    __
-
-  (** val findCXpSane : __ **)
-
-  let findCXpSane =
-    __
+  module XpFacts = ExplanationsFacts(E)
  end
 
 module CXpIterativeFinder =
@@ -183,7 +147,7 @@ module CXpIterativeFinder =
   (** val findCXp : E_.S.t -> E_.S.t **)
 
   let findCXp =
-    Impl.findCXp
+    E_.S.shrink Chk.checkWCXp
 
   (** val findCXpSound : __ **)
 
@@ -196,7 +160,7 @@ module CXpIterativeFinder =
     __
  end
 
-module type EnumeratorBase =
+module type Enumerator =
  sig
   module E :
    InputProblem
@@ -313,4 +277,28 @@ module MakeEnumerator =
       then Some (Xp.Coq_isCXp (Shrink.findCXp x))
       else Some (Xp.Coq_isAXp (Grow.findAXp (E_.S.compl x)))
     | None -> None
+
+  (* IN : logical inductive *)
+  (* with constructors : IN_last IN_prev *)
+  
+
+  (** val coq_IN_ind : __ **)
+
+  let coq_IN_ind =
+    __
+
+  (** val coq_IN_sind : __ **)
+
+  let coq_IN_sind =
+    __
+
+  (** val getSound : __ **)
+
+  let getSound =
+    __
+
+  (** val getComplete : __ **)
+
+  let getComplete =
+    __
  end

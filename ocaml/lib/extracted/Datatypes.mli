@@ -7,6 +7,8 @@ val snd : ('a1 * 'a2) -> 'a2
 
 val length : 'a1 list -> int
 
+val app : 'a1 list -> 'a1 list -> 'a1 list
+
 type comparison =
 | Eq
 | Lt

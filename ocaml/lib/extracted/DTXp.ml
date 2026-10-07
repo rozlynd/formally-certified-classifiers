@@ -378,10 +378,15 @@ module DtAXpFinder =
 
   module Xp = Impl.Xp
 
+  (** val checkWAXp : E_.S.t -> bool **)
+
+  let checkWAXp x =
+    negb (Chk.checkWCXp (E_.S.compl x))
+
   (** val findAXp : E_.S.t -> E_.S.t **)
 
   let findAXp =
-    Impl.findAXp
+    E_.S.shrink checkWAXp
 
   (** val findAXpSound : __ **)
 
@@ -408,7 +413,7 @@ module DtCXpFinder =
   (** val findCXp : E_.S.t -> E_.S.t **)
 
   let findCXp =
-    Impl.findCXp
+    E_.S.shrink Chk.checkWCXp
 
   (** val findCXpSound : __ **)
 

@@ -3,6 +3,7 @@ open Datatypes
 open List0
 open MSetInterface
 open MSetList
+open MSetProperties
 open Orders
 open OrdersEx
 open PeanoNat
@@ -1196,4 +1197,10 @@ module MakeFinSet =
 
   let compl_compat =
     __
+ end
+
+module FinSetProperties =
+ functor (FS:FinSet) ->
+ struct
+  module P = OrdProperties(FS)
  end
