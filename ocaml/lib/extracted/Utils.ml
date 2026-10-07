@@ -726,18 +726,13 @@ module MakeFinSetOn =
        | None -> None))
       n0
 
-  (** val all_obligation_1 : __ -> t **)
-
-  let all_obligation_1 _ =
-    assert false (* absurd case *)
-
   (** val all : t **)
 
   let all =
     let filtered_var = all_below S.n in
     (match filtered_var with
      | Some t0 -> t0
-     | None -> all_obligation_1 __)
+     | None -> assert false (* absurd case *))
 
   (** val coq_In_all : __ **)
 

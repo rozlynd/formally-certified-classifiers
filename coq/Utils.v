@@ -436,7 +436,7 @@ Module MakeFinSetOn (S : FinSig) : FinSetOn S.
     Program Definition all :=
         match all_below S.n with
         | inleft t => t
-        | inright _ => _
+        | inright _ => False_rect _ _
         end.
     Solve All Obligations with lia.
 
