@@ -2,12 +2,13 @@ open Arg
 open Format
 
 open Rfxp
-open Driver_file
+open FileWrapper
+open SatDriver
+open Pretty
+
 open Extracted
 open DTXp
 open Explainers
-open SatDriver
-open Pretty
 
 type mode = AXp | CXp | All
 
@@ -108,7 +109,7 @@ let process_input_problem mode (module Input : DTInputProblem with type K.t = st
 let main_file mode fname =
   info ("Parsing file '" ^ fname ^ "'");
 
-  let module D = Driver_file.MakeData (struct let filename = fname end) in
+  let module D = MakeData (struct let filename = fname end) in
   let module FTD = MakeFeatureTreeData (D) in
   let module MakeI = MakeDTInputProblem (FTD) in
 
