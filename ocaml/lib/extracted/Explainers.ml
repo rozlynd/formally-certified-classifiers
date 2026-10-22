@@ -247,8 +247,8 @@ module MakeEnumerator =
  functor (E_:InputProblem) ->
  functor (It:Iterator with module S = E_.S) ->
  functor (Chk:WCXpChecker with module E = E_) ->
- functor (Shrink:CXpFinder with module E = E_) ->
- functor (Grow:AXpFinder with module E = E_) ->
+ functor (FdCXp:CXpFinder with module E = E_) ->
+ functor (FdAXp:AXpFinder with module E = E_) ->
  struct
   module E = E_
 
@@ -274,8 +274,8 @@ module MakeEnumerator =
     match It.pick st with
     | Some x ->
       if Chk.checkWCXp x
-      then Some (Xp.Coq_isCXp (Shrink.findCXp x))
-      else Some (Xp.Coq_isAXp (Grow.findAXp (E_.S.compl x)))
+      then Some (Xp.Coq_isCXp (FdCXp.findCXp x))
+      else Some (Xp.Coq_isAXp (FdAXp.findAXp (E_.S.compl x)))
     | None -> None
 
   (* IN : logical inductive *)

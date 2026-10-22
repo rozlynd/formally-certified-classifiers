@@ -310,8 +310,8 @@ End MakeIterator.
 Module MakeEnumerator   (Import E_ : InputProblem)
                         (It : Iterator with Module S := E_.S)
                         (Chk : WCXpChecker with Module E := E_)
-                        (Shrink : CXpFinder with Module E := E_)
-                        (Grow : AXpFinder with Module E := E_)
+                        (FdCXp : CXpFinder with Module E := E_)
+                        (FdAXp : AXpFinder with Module E := E_)
                     : Enumerator with Module E := E_ with Definition s := It.s.
 
     Module E := E_.
@@ -331,8 +331,8 @@ Module MakeEnumerator   (Import E_ : InputProblem)
         | None => None
         | Some X =>
             match Chk.checkWCXp X with
-            | true => Some (isCXp (Shrink.findCXp X))
-            | false => Some (isAXp (Grow.findAXp (S.compl X)))
+            | true => Some (isCXp (FdCXp.findCXp X))
+            | false => Some (isAXp (FdAXp.findAXp (S.compl X)))
             end
         end.
 

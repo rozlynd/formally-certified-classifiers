@@ -409,6 +409,6 @@ module MakeEnumerator :
  functor (E_:InputProblem) ->
  functor (It:Iterator with module S = E_.S) ->
  functor (Chk:WCXpChecker with module E = E_) ->
- functor (Shrink:CXpFinder with module E = E_) ->
- functor (Grow:AXpFinder with module E = E_) ->
+ functor (FdCXp:CXpFinder with module E = E_) ->
+ functor (FdAXp:AXpFinder with module E = E_) ->
  Enumerator with module E = E_ with type s = It.s
