@@ -297,8 +297,13 @@ module MakeEnumerator =
   let getSound =
     __
 
-  (** val getComplete : __ **)
+  (** val getComplete_1 : __ **)
 
-  let getComplete =
+  let getComplete_1 =
+    __
+
+  (** val getComplete_2 : __ **)
+
+  let getComplete_2 =
     __
  end

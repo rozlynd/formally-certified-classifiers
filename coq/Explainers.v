@@ -198,9 +198,12 @@ Module Type EnumeratorOn (Import E : InputProblem).
     | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
 
     Axiom getSound :
-        forall s X, get s = Some X -> isXp X /\ ~ IN X s.
+        forall s X, get s = Some X -> isXp X.
 
-    Axiom getComplete :
+    Axiom getComplete_1 :
+        forall s X, get s = Some X -> ~ IN X s.
+
+    Axiom getComplete_2 :
         forall s X, get s = None -> isXp X -> IN X s.
 
 End EnumeratorOn.
@@ -316,6 +319,7 @@ Module MakeEnumerator   (Import E_ : InputProblem)
 
     Module E := E_.
     Module Import Xp := EnumeratorsDefs E.
+    Module Import XpFacts := ExplanationsFacts E.
 
     Definition s := It.s.
     Definition init := It.init.
@@ -341,10 +345,20 @@ Module MakeEnumerator   (Import E_ : InputProblem)
     | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
 
     Theorem getSound :
-        forall s X, get s = Some X -> isXp X /\ ~ IN X s.
+        forall s X, get s = Some X -> isXp X.
+    Proof.
+        intros s X H; unfold get in H;
+        destruct (It.pick s) as [ S |]; try discriminate H;
+        destruct (Chk.checkWCXpSound S) as [HS | HS]; inversion H;
+        [ apply FdCXp.findCXpSound, HS
+        | apply FdAXp.findAXpSound, XpDual_compl_of_not_WCXp_is_WAXp, HS ].
+    Qed.
+
+    Theorem getComplete_1 :
+        forall s X, get s = Some X -> ~ IN X s.
     Admitted.
 
-    Theorem getComplete :
+    Theorem getComplete_2 :
         forall s X, get s = None -> isXp X -> IN X s.
     Admitted.
 
