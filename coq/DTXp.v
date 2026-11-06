@@ -1123,13 +1123,13 @@ End DtWCXpChecker.
 Module DtAXpFinder (E_ : DTInputProblem) : AXpFinder with Module E := E_.
     Module Chk := DtWCXpChecker E_.
     Module E := E_.
-    Module Impl := AXpIterativeFinderOn E_ Chk.
+    Module Impl := MakeAXpFinderOn E_ Chk.
     Include Impl.
 End DtAXpFinder.
 
 Module DtCXpFinder (E_ : DTInputProblem) : CXpFinder with Module E := E_.
     Module Chk := DtWCXpChecker E_.
     Module E := E_.
-    Module Impl := CXpIterativeFinderOn E_ Chk.
+    Module Impl := MakeCXpFinderOn E_ Chk.
     Include Impl.
 End DtCXpFinder.

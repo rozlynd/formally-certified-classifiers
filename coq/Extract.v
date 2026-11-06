@@ -13,5 +13,5 @@ Separate Extraction
     boolean_feature float_feature string_enum_feature enum_feature
     MakeDT MakeRF
     DtWCXpChecker DtAXpFinder DtCXpFinder
-    AXpIterativeFinder CXpIterativeFinder MakeIterator MakeEnumerator
+    MakeAXpFinder MakeCXpFinder MakeIterator MakeEnumerator
     DtGenVectors.

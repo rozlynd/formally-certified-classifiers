@@ -62,7 +62,7 @@ module type WCXpChecker =
   val checkWCXpSound : E.S.t -> reflect
  end
 
-module AXpIterativeFinderOn =
+module MakeAXpFinderOn =
  functor (E:InputProblem) ->
  functor (Chk:WCXpChecker with module E = E) ->
  struct
@@ -89,13 +89,13 @@ module AXpIterativeFinderOn =
      | ReflectF -> ReflectT)
  end
 
-module AXpIterativeFinder =
+module MakeAXpFinder =
  functor (E_:InputProblem) ->
  functor (Chk:WCXpChecker with module E = E_) ->
  struct
   module E = E_
 
-  module Impl = AXpIterativeFinderOn(E_)(Chk)
+  module Impl = MakeAXpFinderOn(E_)(Chk)
 
   module Xp = Impl.Xp
 
@@ -120,7 +120,7 @@ module AXpIterativeFinder =
     __
  end
 
-module CXpIterativeFinderOn =
+module MakeCXpFinderOn =
  functor (E:InputProblem) ->
  functor (Chk:WCXpChecker with module E = E) ->
  struct
@@ -134,13 +134,13 @@ module CXpIterativeFinderOn =
   module XpFacts = ExplanationsFacts(E)
  end
 
-module CXpIterativeFinder =
+module MakeCXpFinder =
  functor (E_:InputProblem) ->
  functor (Chk:WCXpChecker with module E = E_) ->
  struct
   module E = E_
 
-  module Impl = CXpIterativeFinderOn(E_)(Chk)
+  module Impl = MakeCXpFinderOn(E_)(Chk)
 
   module Xp = Impl.Xp
 

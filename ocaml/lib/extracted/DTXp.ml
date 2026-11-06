@@ -374,7 +374,7 @@ module DtAXpFinder =
 
   module E = E_
 
-  module Impl = AXpIterativeFinderOn(E_)(Chk)
+  module Impl = MakeAXpFinderOn(E_)(Chk)
 
   module Xp = Impl.Xp
 
@@ -406,7 +406,7 @@ module DtCXpFinder =
 
   module E = E_
 
-  module Impl = CXpIterativeFinderOn(E_)(Chk)
+  module Impl = MakeCXpFinderOn(E_)(Chk)
 
   module Xp = Impl.Xp
 

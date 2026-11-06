@@ -87,7 +87,7 @@ End WCXpChecker.
 
 (* Default implementations of finders given a WCXp checker *)
 
-Module AXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: AXpFinderOn E.
+Module MakeAXpFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: AXpFinderOn E.
     Module Import Xp := ExplainersDefs E.
 
     Local Definition checkWAXp X := negb (Chk.checkWCXp (S.compl X)).
@@ -130,16 +130,16 @@ Module AXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Mo
         forall X, E.S.Subset (findAXp X) X.
     Proof. apply S.shrink_spec1. Qed.
 
-End AXpIterativeFinderOn.
+End MakeAXpFinderOn.
 
-Module AXpIterativeFinder (E_ : InputProblem) (Chk : WCXpChecker with Module E := E_) : AXpFinder with Module E := E_.
+Module MakeAXpFinder (E_ : InputProblem) (Chk : WCXpChecker with Module E := E_) : AXpFinder with Module E := E_.
     Module E := E_.
-    Module Impl := AXpIterativeFinderOn E_ Chk.
+    Module Impl := MakeAXpFinderOn E_ Chk.
     Include Impl.
-End AXpIterativeFinder.
+End MakeAXpFinder.
 
 
-Module CXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: CXpFinderOn E.
+Module MakeCXpFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Module E := E) <: CXpFinderOn E.
     Module Import Xp := ExplainersDefs E.
 
     Definition findCXp := S.shrink Chk.checkWCXp.
@@ -172,13 +172,13 @@ Module CXpIterativeFinderOn (Import E : InputProblem) (Chk : WCXpChecker with Mo
         forall X, E.S.Subset (findCXp X) X.
     Proof. apply S.shrink_spec1. Qed.
 
-End CXpIterativeFinderOn.
+End MakeCXpFinderOn.
 
-Module CXpIterativeFinder (E_ : InputProblem) (Chk : WCXpChecker with Module E := E_) : CXpFinder with Module E := E_.
+Module MakeCXpFinder (E_ : InputProblem) (Chk : WCXpChecker with Module E := E_) : CXpFinder with Module E := E_.
     Module E := E_.
-    Module Impl := CXpIterativeFinderOn E_ Chk.
+    Module Impl := MakeCXpFinderOn E_ Chk.
     Include Impl.
-End CXpIterativeFinder.
+End MakeCXpFinder.
 
 
 (* Enumerate explanations *)
