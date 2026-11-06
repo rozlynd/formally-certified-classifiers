@@ -11,7 +11,7 @@ def export_features(v: list, feature_names = None)-> str:
     """
 
     feature_names = list(feature_names)
-    are_features_nammed = feature_names != None or feature_names != []
+    are_features_nammed = feature_names != None and feature_names != []
 
     def get_feature_name(i):
         """Format the potential feature name.
