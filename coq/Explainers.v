@@ -24,6 +24,16 @@ Module EnumeratorsDefs (Import E : InputProblem).
         | isCXp X => CXp X
         end.
 
+    Inductive stateWf {s : Type} {init : s} {rec : Xp -> s -> s} : s -> Prop :=
+    | initWf : stateWf init
+    | recordWf : forall X st, stateWf st -> stateWf (rec X st).
+
+    Inductive stateHasSeen {s : Type} {init : s} {rec : Xp -> s -> s} : Xp -> s -> Prop :=
+    | recordLast : forall X st,
+        @stateWf _ init rec st -> stateHasSeen X (rec X st)
+    | recordPrev : forall X Y st,
+        @stateWf _ init rec st -> stateHasSeen X st -> stateHasSeen X (rec Y st).
+
 End EnumeratorsDefs.
 
 
@@ -190,21 +200,20 @@ Module Type EnumeratorOn (Import E : InputProblem).
 
     Parameter init : s.
     Parameter record : Xp -> s -> s.
-
     Parameter get : s -> option Xp.
 
-    Inductive IN (X : Xp) : s -> Prop :=
-    | IN_last (st : s) : IN X (record X st)
-    | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
+    Axiom getSound : forall s X,
+        get s = Some X -> isXp X.
 
-    Axiom getSound :
-        forall s X, get s = Some X -> isXp X.
+    Axiom getComplete_1 : forall s X,
+        get s = Some X ->
+        @stateHasSeen _ init record X s ->
+        False.
 
-    Axiom getComplete_1 :
-        forall s X, get s = Some X -> ~ IN X s.
-
-    Axiom getComplete_2 :
-        forall s X, get s = None -> isXp X -> IN X s.
+    Axiom getComplete_2 : forall s X,
+        @stateWf _ init record s ->
+        get s = None ->
+        @stateHasSeen _ init record X s.
 
 End EnumeratorOn.
 
@@ -382,6 +391,7 @@ Module MakeEnumerator   (Import E_ : InputProblem)
     Module E := E_.
     Module Import Xp := EnumeratorsDefs E.
     Module Import XpFacts := ExplanationsFacts E.
+    Module FP := FinSetProperties S.
 
     Definition s := It.s.
     Definition init := It.init.
@@ -402,10 +412,6 @@ Module MakeEnumerator   (Import E_ : InputProblem)
             end
         end.
 
-    Inductive IN (X : Xp) : s -> Prop :=
-    | IN_last (st : s) : IN X (record X st)
-    | IN_prev (st : s) (Y : Xp) : IN X st -> IN X (record Y st).
-
     Theorem getSound :
         forall s X, get s = Some X -> isXp X.
     Proof.
@@ -417,11 +423,34 @@ Module MakeEnumerator   (Import E_ : InputProblem)
     Qed.
 
     Theorem getComplete_1 :
-        forall s X, get s = Some X -> ~ IN X s.
-    Admitted.
+        forall s X, get s = Some X -> @stateHasSeen _ init record X s -> False.
+    Proof.
+        intros s X Hget abs; unfold get in Hget;
+        destruct (It.pick s) as [ S |] eqn:Hsat; try discriminate Hget;
+        apply It.pick_sat in Hsat;
+        destruct (Chk.checkWCXpSound S) as [HWXp | HWXp];
+        inversion Hget as [HX];
+        induction abs as [X s Hwfs | X Y s Hwfs abs IH];
+            try (
+                destruct Y;
+                try apply It.sat_block_down in Hsat;
+                try apply It.sat_block_up in Hsat;
+                destruct Hsat; apply IH; try assumption
+            );
+        rewrite <- HX in Hsat;
+        try apply It.sat_block_down in Hsat;
+        try apply It.sat_block_up in Hsat;
+        destruct Hsat as (Hsat & H).
+        -   apply H, FdCXp.findCXpSane.
+        -   apply H, FP.Subset_compl; rewrite FP.compl_compl;
+            apply FdAXp.findAXpSane.
+    Qed.
 
     Theorem getComplete_2 :
-        forall s X, get s = None -> isXp X -> IN X s.
+        forall s X,
+            @stateWf _ init record s ->
+            get s = None ->
+            @stateHasSeen _ init record X s.
     Admitted.
 
 End MakeEnumerator.

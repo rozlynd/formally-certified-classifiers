@@ -295,20 +295,6 @@ module MakeEnumerator =
       else Some (Xp.Coq_isAXp (FdAXp.findAXp (E_.S.compl x)))
     | None -> None
 
-  (* IN : logical inductive *)
-  (* with constructors : IN_last IN_prev *)
-  
-
-  (** val coq_IN_ind : __ **)
-
-  let coq_IN_ind =
-    __
-
-  (** val coq_IN_sind : __ **)
-
-  let coq_IN_sind =
-    __
-
   (** val getSound : __ **)
 
   let getSound =
