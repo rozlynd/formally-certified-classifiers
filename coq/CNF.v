@@ -63,6 +63,43 @@ End CNFSatisfiabilityDefs.
 Arguments assignment V : clear implicits.
 
 
+Section CNFExt.
+
+    Context {V : Type} (I J : assignment V).
+
+    Hypothesis i_eq_j : forall x, I x = J x.
+
+    Theorem eval_literal_ext : forall (x : literal V),
+        eval_literal I x = eval_literal J x.
+    Proof. intros (x & []); simpl; now rewrite i_eq_j. Qed.
+
+    Theorem eval_clause_ext : forall (c : clause V),
+        eval_clause I c = eval_clause J c.
+    Proof. intros (c & H); apply existsb_ext, eval_literal_ext. Qed.
+
+    Theorem eval_cardinality_constraint_ext : forall (c : cardinality_constraint V),
+        eval_cardinality_constraint I c = eval_cardinality_constraint J c.
+    Proof.
+        intros ((c & H) & n); simpl;
+        rewrite List.filter_ext with (g := eval_literal J); try reflexivity;
+        apply eval_literal_ext.
+    Qed.
+
+    Theorem eval_constraint_ext : forall (c : clause V + cardinality_constraint V),
+        eval_constraint I c = eval_constraint J c.
+    Proof. intros [|]; [apply eval_clause_ext | apply eval_cardinality_constraint_ext]. Qed.
+
+    Theorem eval_cnf_with_cc_ext : forall (c : cnf_with_cc V),
+        eval_cnf_with_cc I c = eval_cnf_with_cc J c.
+    Proof. intros; apply forallb_ext, eval_constraint_ext. Qed.
+
+    Theorem eval_cnf_ext : forall (c : cnf V),
+        eval_cnf I c = eval_cnf J c.
+    Proof. intros; apply forallb_ext, eval_clause_ext. Qed.
+
+End CNFExt.
+
+
 Section CNFMap.
 
     Context {U V : Type} (f : U -> V).
