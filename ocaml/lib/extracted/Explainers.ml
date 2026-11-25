@@ -232,14 +232,31 @@ module MakeIterator =
   let block_down x c =
     (clause_block Coq_pos (S.compl x)) :: c
 
-  (** val pick_block_up : __ **)
+  type sat = __
 
-  let pick_block_up =
+  (** val pick_sat : __ **)
+
+  let pick_sat =
     __
 
-  (** val pick_block_down : __ **)
+  (** val pick_unsat : __ **)
 
-  let pick_block_down =
+  let pick_unsat =
+    __
+
+  (** val sat_init : __ **)
+
+  let sat_init =
+    __
+
+  (** val sat_block_up : __ **)
+
+  let sat_block_up =
+    __
+
+  (** val sat_block_down : __ **)
+
+  let sat_block_down =
     __
  end
 

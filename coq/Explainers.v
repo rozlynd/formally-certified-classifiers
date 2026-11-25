@@ -217,20 +217,27 @@ End Enumerator.
 Module Type IteratorOn (S : FinSet).
 
     Parameter s : Type.
+    Parameter sat : S.t -> s -> Prop.
 
     Parameter init : s.
-
     Parameter pick : s -> option S.t.
-
     Parameter block_up : S.t -> s -> s.
-
     Parameter block_down : S.t -> s -> s.
 
-    Axiom pick_block_up :
-        forall X Y st, pick (block_up X st) = Some Y -> ~ S.Subset X Y.
+    Axiom pick_sat : forall st X,
+        pick st = Some X -> sat X st.
 
-    Axiom pick_block_down :
-        forall X Y st, pick (block_down X st) = Some Y -> ~ S.Subset Y X.
+    Axiom pick_unsat : forall st X,
+        pick st = None -> ~ sat X st.
+
+    Axiom sat_init : forall X,
+        sat X init.
+
+    Axiom sat_block_up : forall st X Y,
+        sat X (block_up Y st) <-> sat X st /\ ~ S.Subset Y X.
+
+    Axiom sat_block_down : forall st X Y,
+        sat X (block_down Y st) <-> sat X st /\ ~ S.Subset X Y.
 
 End IteratorOn.
 
@@ -281,30 +288,85 @@ Module MakeIterator     (S_ : FinSet)
     Definition block_down (X : S.t) (c : cnf S.elt) := clause_block pos (S.compl X) :: c.
 
 
-    Theorem pick_block_up : forall (X Y : S.t) (st : s),
-        pick (block_up X st) = Some Y -> ~ S.Subset X Y.
+    Definition sat X f := eval_cnf (fun x => S.mem x X) f = true.
+
+    Theorem pick_sat : forall st X,
+        pick st = Some X -> sat X st.
     Proof.
-        unfold pick; intros X Y st H1 abs;
-        destruct (solve (block_up X st)) as [I |] eqn:H2; inversion H1; subst Y;
-        apply sat_correct in H2;
-        apply andb_true_iff in H2 as (H2 & _);
-        apply existsb_exists in H2 as (l & H2 & H3);
-        apply in_map_iff in H2 as (x & H2 & H4);
-        apply In_InA, S.elements_spec1, abs, S.In_init in H4;
-        now rewrite <- H2 in H3; simpl in H3; rewrite H4 in H3.
+        intros st X; unfold pick, sat; intros H;
+        destruct (solve st) as [I |] eqn:E; inversion H;
+        apply sat_correct in E; rewrite eval_cnf_ext with (J := I); try assumption;
+        intros x; destruct (I x) eqn:HI.
+        -   apply S.mem_spec, S.In_init, HI.
+        -   apply not_true_is_false; intros abs;
+            apply S.mem_spec, S.In_init in abs;
+            now rewrite abs in HI.
     Qed.
 
-    Theorem pick_block_down : forall (X Y : S.t) (st : s),
-        pick (block_down X st) = Some Y -> ~ S.Subset Y X.
+    Theorem pick_unsat : forall st X,
+        pick st = None -> ~ sat X st.
     Proof.
-        unfold pick; intros X Y st H1 abs;
-        destruct (solve (block_down X st)) as [I |] eqn:H2; inversion H1; subst Y;
-        apply sat_correct in H2;
-        apply andb_true_iff in H2 as (H2 & _);
-        apply existsb_exists in H2 as (l & H2 & H3);
-        apply in_map_iff in H2 as (x & H2 & H4);
-        apply In_InA, S.elements_spec1, S.In_compl in H4;
-        rewrite <- H2 in H3; simpl in H3; apply S.In_init in H3; auto.
+        intros st X; unfold pick, sat; intros H;
+        destruct (solve st) eqn:E; inversion H;
+        eapply unsat_correct in E; now rewrite E.
+    Qed.
+
+    Theorem sat_init : forall X,
+        sat X init.
+    Proof. reflexivity. Qed.
+
+    Theorem sat_block_up : forall (st : s) (X Y : S.t),
+        sat X (block_up Y st) <-> sat X st /\ ~ S.Subset Y X.
+    Proof.
+        intros st X Y; unfold block_up, sat; simpl;
+        rewrite andb_true_iff, existsb_exists; split.
+        -   intros ((x & H1 & H2) & H3);
+            apply in_map_iff in H1 as (y & H4 & H5);
+            split; try assumption; intros abs;
+            rewrite <- H4 in H2; simpl in H2; rewrite negb_true_iff in H2;
+            apply In_InA, S.elements_spec1, abs, S.mem_spec in H5;
+            now rewrite H2 in H5.
+        -   intros (H1 & H2); split; try assumption;
+            destruct (S.choose (S.diff Y X)) as [x |] eqn:H3.
+            +   apply S.choose_spec1, S.diff_spec in H3 as [H3 H4];
+                exists (x, neg); split.
+                *   apply in_map_iff; exists x; split; try reflexivity;
+                    apply S.elements_spec1 in H3;
+                    rewrite SetoidList.InA_altdef, Exists_exists in H3;
+                    destruct H3 as (y & H3 & H5); now rewrite H5.
+                *   apply eq_true_not_negb; intros abs; now apply H4, S.mem_spec.
+            +   exfalso; apply H2; intros x H4;
+                apply S.choose_spec2 in H3;
+                destruct (S.mem x X) eqn:H5; try (now apply S.mem_spec);
+                exfalso; eapply H3, S.diff_spec;
+                split; [apply H4 | intros abs; apply S.mem_spec in abs; now rewrite H5 in abs].
+    Qed.
+
+    Theorem sat_block_down : forall (st : s) (X Y : S.t),
+        sat X (block_down Y st) <-> sat X st /\ ~ S.Subset X Y.
+    Proof.
+        intros st X Y; unfold block_down, sat; simpl;
+        rewrite andb_true_iff, existsb_exists; split.
+        -   intros ((x & H1 & H2) & H3);
+            apply in_map_iff in H1 as (y & H4 & H5);
+            split; try assumption; intros abs;
+            rewrite <- H4 in H2; simpl in H2;
+            apply In_InA, S.elements_spec1, S.In_compl in H5;
+            now apply H5, abs, S.mem_spec.
+        -   intros (H1 & H2); split; try assumption.
+            destruct (S.choose (S.diff X Y)) as [x |] eqn:H3.
+            +   apply S.choose_spec1, S.diff_spec in H3 as [H3 H4];
+                exists (x, pos); split.
+                *   apply in_map_iff; exists x; split; try reflexivity;
+                    apply S.In_compl, S.elements_spec1 in H4;
+                    rewrite SetoidList.InA_altdef, Exists_exists in H4;
+                    destruct H4 as (y & H4 & H5); now rewrite H5.
+                *   now apply S.mem_spec.
+            +   exfalso; apply H2; intros x H4;
+                apply S.choose_spec2 in H3;
+                destruct (S.mem x Y) eqn:H5; try (now apply S.mem_spec);
+                exfalso; eapply H3, S.diff_spec;
+                split; [apply H4 | intros abs; apply S.mem_spec in abs; now rewrite H5 in abs].
     Qed.
 
 End MakeIterator.
